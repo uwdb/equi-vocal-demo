@@ -1,0 +1,7 @@
+{% load static %}
+
+{% for video_path in video_path_list %}
+    <video width="240" controls loop>
+        <source src="{% static video_path %}" type="video/mp4"> Your browser does not support the video tag.
+    </video>
+{% endfor %}
