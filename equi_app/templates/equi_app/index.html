@@ -22,31 +22,34 @@
         <p class="lead">Target Query: Conjunction(Conjunction(Conjunction(Behind(o0, o1), BottomQuadrant(o0)),
             Color_brown(o0)), Near_1.0(o0, o2))</p>
         <div class="row h-75 pt-5">
-            <div class="col-9 mh-100 overflow-scroll">
-                <div id="main-container" class="p-2 h-100 border">
-
-                    <h5>Initialization</h5>
-                    <div id="gallery" class="d-flex flex-wrap border border-1 border-secondary">
-                        {% for video_path in video_paths %}
-                        <video width="240" controls autoplay loop muted class="p-2">
-                            <source src="{% static video_path %}" type="video/mp4"> Your browser does not support the video tag.
-                        </video>
-                        {% endfor %}
-                    </div>
-                    <div class="d-flex justify-content-center pt-5">
-                        <div id="btn" class="btn-group">
-                            <button type="button" class="btn btn-outline-primary" onclick="showMoreSegments()">Show me
-                                more</button>
-                            <button type="button" class="btn btn-outline-primary" onclick="iterativeSynthesis('init')">Ready to
-                                go!</button>
+            <div class="col-9 mh-100">
+                <div class="border h-100 p-2 overflow-scroll">
+                    <div id="main-container" class="p-3">
+                        <h5>Initialization</h5>
+                        <div id="gallery" class="d-flex flex-wrap border border-1 border-secondary">
+                            {% for video_path in video_paths %}
+                            <video width="240" controls autoplay loop muted class="p-2">
+                                <source src="{% static video_path %}" type="video/mp4"> Your browser does not support the video tag.
+                            </video>
+                            {% endfor %}
                         </div>
+                        <div class="d-flex justify-content-center pt-5">
+                            <div id="btn" class="btn-group">
+                                <button type="button" class="btn btn-outline-primary" onclick="showMoreSegments()">Show me
+                                    more</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="iterativeSynthesis('init')">Ready to
+                                    go!</button>
+                            </div>
+                        </div>
+                        <!-- <div id="prediction"></div> -->
                     </div>
-                    <!-- <div id="prediction"></div> -->
                 </div>
             </div>
-            <div class="col-3 mh-100 overflow-scroll">
-                <div class="p-2 h-100 border">
-                    <h5>Prediction</h5>
+            <div class="col-3 mh-100">
+                <div class="border h-100 p-2 overflow-scroll">
+                    <div class="p-3">
+                        <h5>Prediction</h5>
+                    </div>
                 </div>
             </div>
         </div>
