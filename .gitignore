@@ -1,5 +1,7 @@
 # Created by https://www.gitignore.io
 
+equi_app/static/equi_app/clevrer/*
+
 ### OSX ###
 .DS_Store
 .AppleDouble
