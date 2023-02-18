@@ -5,9 +5,9 @@ from django.template import loader
 from rest_framework.views import APIView
 from django.templatetags.static import static
 
-import sys
-sys.path.append("/Users/zhangenhao/Desktop/UW/Research/equi-vocal-demo/EQUI-VOCAL")
-from src.synthesize import test_algorithm_interactive
+# import sys
+# sys.path.append("/Users/zhangenhao/Desktop/UW/Research/equi-vocal-demo/EQUI-VOCAL")
+# from src.synthesize import test_algorithm_interactive
 
 class index(APIView):
     def get(self, request, format=None):

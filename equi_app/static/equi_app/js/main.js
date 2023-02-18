@@ -1,4 +1,4 @@
-const bootstrap = require('bootstrap');
+// TODO: buttons in the main container should be fixed to the bottom of the page (not as part of the scrollable area)
 
 function showMoreSegments() {
     var xhttp = new XMLHttpRequest();
@@ -6,22 +6,24 @@ function showMoreSegments() {
     xhttp.onload = function() {
         var data = JSON.parse(this.response);
         var segments = data.video_paths;
-        var gallery = document.getElementById("gallery");
-        gallery.innerHTML = "";
+        // var gallery = document.getElementById("gallery");
+        // gallery.innerHTML = "";
+        $("#gallery").empty();
         for (var i = 0; i < segments.length; i++) {
-            var video = document.createElement("video");
-            video.setAttribute("width", "240");
-            video.setAttribute("controls", "");
-            video.setAttribute("autoplay", "");
-            video.setAttribute("loop", "");
-            video.setAttribute("muted", "")
-            video.classList.add("p-2");
-            var source = document.createElement("source");
-            source.setAttribute("src", segments[i]);
-            source.setAttribute("type", "video/mp4");
-            source.innerHTML = "Your browser does not support the video tag.";
-            video.appendChild(source);
-            gallery.appendChild(video);
+            $("#gallery").append(`
+                <div class="card m-1">
+                    <video width="240" controls autoplay loop muted class="p-2">
+                        <source src="${segments[i]}" type="video/mp4"> Your browser does not support the video tag.
+                    </video>
+                    <div class="card-body btn-group btn-group-sm" role="group" aria-label="Binary label of the video segment">
+                        <input type="radio" class="btn-check" name="btnradio_${i}" id="btnradio1_${i}" autocomplete="off" checked>
+                        <label class="btn btn-outline-primary" for="btnradio1_${i}">Positive</label>
+
+                        <input type="radio" class="btn-check" name="btnradio_${i}" id="btnradio2_${i}" autocomplete="off" disabled>
+                        <label class="btn btn-outline-primary" for="btnradio2_${i}">Negative</label>
+                    </div>
+                </div>
+            `);
         }
     };
     xhttp.send();
