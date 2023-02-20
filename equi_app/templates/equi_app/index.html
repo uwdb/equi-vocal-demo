@@ -27,18 +27,25 @@
                     <div id="main-container" class="m-3">
                         <h5>Initialization</h5>
                         <div id="gallery" class="d-flex flex-wrap border border-1 border-secondary">
-                            {% for video_path in video_paths %}
+                            {% for video_path, label in video_paths %}
                             <div class="card m-1">
                                 <video width="240" controls autoplay loop muted class="p-2">
                                     <source src="{% static video_path %}" type="video/mp4"> Your browser does not
                                     support the video tag.
                                 </video>
-                                <!-- TODO: Choose checked button based on ground-truth label -->
                                 <div class="card-body btn-group btn-group-sm" role="group" aria-label="Binary label of the video segment">
+                                    {% if label == 1 %}
                                     <input type="radio" class="btn-check" name="btnradio_{{ forloop.counter0 }}" id="btnradio1_{{ forloop.counter0 }}" autocomplete="off" checked>
+                                    {% else %}
+                                    <input type="radio" class="btn-check" name="btnradio_{{ forloop.counter0 }}" id="btnradio1_{{ forloop.counter0 }}" autocomplete="off" disabled>
+                                    {% endif %}
                                     <label class="btn btn-outline-primary" for="btnradio1_{{ forloop.counter0 }}">Positive</label>
 
+                                    {% if label == 1 %}
                                     <input type="radio" class="btn-check" name="btnradio_{{ forloop.counter0 }}" id="btnradio2_{{ forloop.counter0 }}" autocomplete="off" disabled>
+                                    {% else %}
+                                    <input type="radio" class="btn-check" name="btnradio_{{ forloop.counter0 }}" id="btnradio2_{{ forloop.counter0 }}" autocomplete="off" checked>
+                                    {% endif %}
                                     <label class="btn btn-outline-primary" for="btnradio2_{{ forloop.counter0 }}">Negative</label>
                                   </div>
                             </div>

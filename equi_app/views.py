@@ -14,16 +14,20 @@ class index(APIView):
         request.session = {}
         # vids = random.sample(range(10000), 3)
         vids = [1798, 6195, 6666, 7873, 2124, 8646, 2702, 4768, 6522, 7293]
+        labels = [1, 1, 1, 1, 1, 0, 0, 0, 0, 0]
         context = {
-            'video_paths': ['equi_app/clevrer/video_{}-{}/video_{}.mp4'.format(str(vid//1000*1000).zfill(5), str((vid//1000+1)*1000).zfill(5), str(vid).zfill(5)) for vid in vids],
+            'video_paths': [('equi_app/clevrer/video_{}-{}/video_{}.mp4'.format(str(vid//1000*1000).zfill(5), str((vid//1000+1)*1000).zfill(5), str(vid).zfill(5)), label) for vid, label in zip(vids, labels)],
         }
         return render(request, 'equi_app/index.html', context)
+        # video_paths = [static('equi_app/clevrer/video_{}-{}/video_{}.mp4'.format(str(vid//1000*1000).zfill(5), str((vid//1000+1)*1000).zfill(5), str(vid).zfill(5))) for vid in vids]
+        # return JsonResponse({'video_paths': video_paths, 'labels': labels})
 
 class show_more_segments(APIView):
     def get(self, request, format=None):
         vids = random.sample(range(10000), 10)
+        labels = [1, 1, 1, 1, 1, 0, 0, 0, 0, 0]
         video_paths = [static('equi_app/clevrer/video_{}-{}/video_{}.mp4'.format(str(vid//1000*1000).zfill(5), str((vid//1000+1)*1000).zfill(5), str(vid).zfill(5))) for vid in vids]
-        return JsonResponse({'video_paths': video_paths})
+        return JsonResponse({'video_paths': video_paths, 'labels': labels})
 
 class iterative_synthesis_init(APIView):
     def get(self, request, format=None):

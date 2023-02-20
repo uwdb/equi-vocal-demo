@@ -6,6 +6,7 @@ function showMoreSegments() {
     xhttp.onload = function() {
         var data = JSON.parse(this.response);
         var segments = data.video_paths;
+        var selected_gt_labels = data.labels;
         // var gallery = document.getElementById("gallery");
         // gallery.innerHTML = "";
         $("#gallery").empty();
@@ -16,10 +17,10 @@ function showMoreSegments() {
                         <source src="${segments[i]}" type="video/mp4"> Your browser does not support the video tag.
                     </video>
                     <div class="card-body btn-group btn-group-sm" role="group" aria-label="Binary label of the video segment">
-                        <input type="radio" class="btn-check" name="btnradio_${i}" id="btnradio1_${i}" autocomplete="off" checked>
+                        <input type="radio" class="btn-check" name="btnradio_${i}" id="btnradio1_${i}" autocomplete="off" ${selected_gt_labels[i] == 1 ? 'checked': 'disabled'}>
                         <label class="btn btn-outline-primary" for="btnradio1_${i}">Positive</label>
 
-                        <input type="radio" class="btn-check" name="btnradio_${i}" id="btnradio2_${i}" autocomplete="off" disabled>
+                        <input type="radio" class="btn-check" name="btnradio_${i}" id="btnradio2_${i}" autocomplete="off" ${selected_gt_labels[i] == 1? 'disabled' : 'checked'}>
                         <label class="btn btn-outline-primary" for="btnradio2_${i}">Negative</label>
                     </div>
                 </div>
