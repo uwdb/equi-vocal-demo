@@ -1,5 +1,8 @@
 // TODO: buttons in the main container should be fixed to the bottom of the page (not as part of the scrollable area)
 
+const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
+const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
+
 const createSampleInput = (segment_src, segment_label, i) => {
     return $(`
         <div class="card m-1">
@@ -41,11 +44,15 @@ async function iterativeSynthesis(init) {
     var main_container = $("#main-container");
     if (data.terminated == true) {
         // Update the gallery
-        var heading = $("h5").addClass("pt-5", "pb-5").text("Algorithm terminated.");
+        var heading = $("<h5></h5>").addClass("pt-5").text("Algorithm terminated.");
         main_container.append(heading);
         // Update button
         $("#btn").remove();
         // TODO: Add a button to restart.
+        var button = $("<div></div>").addClass("d-flex justify-content-center pt-3 pb-5").html(`
+            <button type="button" class="btn btn-outline-primary" onclick="window.location.reload()">Restart</button>
+        `);
+        main_container.append(button);
     }
     else {
         var segments = data.video_paths;

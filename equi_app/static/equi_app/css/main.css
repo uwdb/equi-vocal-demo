@@ -11,3 +11,7 @@ html, body {
 .overflow-scroll::-webkit-scrollbar {
     display: none;  /* Safari and Chrome */
 }
+
+.popover {
+    max-width: 800px !important;
+}
