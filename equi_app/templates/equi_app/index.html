@@ -3,6 +3,7 @@
 <html lang="en">
 
 <head>
+    <base href="http://127.0.0.1:8000/"/>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content>
@@ -19,10 +20,57 @@
 <body>
     <div class="container pt-5 h-100">
         <h1>EQUI-VOCAL</h1>
+        <nav class="navbar navbar-light mb-2">
+            <form class="container-fluid justify-content-start">
+              <a class="btn btn-outline-success me-2" type="button" href="0">Example Query 1</a>
+              <a class="btn btn-outline-success me-2" type="button" href="1">Example Query 2</a>
+              <a class="btn btn-outline-success me-2" type="button" href="2">Example Query 3</a>
+              <a class="btn btn-outline-success me-2" type="button" href="3">Live Query</a>
+            </form>
+        </nav>
         <span class="lead">Target Query: {{ query_text }} </span>
         <button type="button" class="btn btn-primary btn-sm ms-2" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-custom-class="custom-popover" data-bs-title="Datalog rules" data-bs-content="<pre>{{ query_datalog }}</pre>" data-bs-html="true">
             Datalog
-          </button>
+        </button>
+        {% if show_parameters == True %}
+        <form class="border mt-5 p-2 col-sm-4">
+            <div class="row mb-3">
+            <label for="labelingBudget" class="col-sm-6 col-form-label">Labeling Budget</label>
+            <div class="col-sm-4">
+                <select class="form-select">
+                    <option value="1" selected>30</option>
+                    <option value="2">50</option>
+                    <option value="3">100</option>
+                </select>
+            </div>
+            </div>
+            <div class="row mb-3">
+            <label for="initExamples" class="col-sm-6 col-form-label"># Initial Examples</label>
+            <div class="col-sm-4">
+                <select class="form-select">
+                    <option value="10" selected>10</option>
+                    <option value="20">20</option>
+                    <option value="30">30</option>
+                    <option value="40">40</option>
+                    <option value="50">50</option>
+                </select>
+            </div>
+            </div>
+            <div class="row mb-3">
+            <label for="beamWidth" class="col-sm-6 col-form-label">Beam Width</label>
+            <div class="col-sm-4">
+                <select class="form-select">
+                    <option value="1">1</option>
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                </select>
+            </div>
+            </div>
+            <button type="submit" class="btn btn-outline-primary">Set parameters</button>
+        </form>
+        {% endif %}
         <!-- <p class="lead">
             <pre style="font-size: 11px">
                 {{ query_datalog }}
@@ -74,7 +122,7 @@
             </div>
             <div class="col-3 mh-100">
                 <div class="border h-100 p-2 overflow-scroll">
-                    <div class="p-3">
+                    <div class="p-3" id="prediction-container">
                         <h5>Prediction</h5>
                     </div>
                 </div>

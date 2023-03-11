@@ -31,6 +31,10 @@ async function showMoreSegments() {
     }
 }
 
+async function selectQuery(query_idx) {
+    const response = await fetch("select_query/" + query_idx);
+}
+
 async function iterativeSynthesis(init) {
     // TODO: fix button names and ids
     var url;
@@ -56,7 +60,6 @@ async function iterativeSynthesis(init) {
     }
     else {
         var segments = data.video_paths;
-        var predicted_segments = data.predicted_paths;
         var iteration = data.iteration;
         var selected_gt_labels = data.selected_gt_labels;
         var current_npos = data.current_npos;
@@ -101,20 +104,5 @@ async function iterativeSynthesis(init) {
             .text("Confirm labels");
         button_div.append(button);
         main_container.append(button_div);
-        // Update prediction
-        // var prediction = document.getElementById("prediction");
-        // prediction.innerHTML = "Predicted positive segments:<br>";
-        // for (var i = 0; i < predicted_segments.length; i++) {
-        //     var video = document.createElement("video");
-        //     video.setAttribute("width", "240");
-        //     video.setAttribute("controls", "");
-        //     video.setAttribute("loop", "");
-        //     var source = document.createElement("source");
-        //     source.setAttribute("src", segments[i]);
-        //     source.setAttribute("type", "video/mp4");
-        //     source.innerHTML = " Your browser does not support the video tag.";
-        //     video.appendChild(source);
-        //     prediction.appendChild(video);
-        // }
     }
 }
