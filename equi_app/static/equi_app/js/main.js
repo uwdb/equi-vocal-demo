@@ -3,6 +3,14 @@
 const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
 const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
 
+const graph = JSON.parse(document.getElementById('render-scene-graph').textContent);
+
+const myPopoverTrigger = document.getElementById('image-graph-popover');
+myPopoverTrigger.addEventListener('inserted.bs.popover', () => {
+    $('#image-graph').empty();
+    renderSceneGraph('#image-graph', graph);
+  })
+
 const createSampleInput = (segment_src, segment_label, i) => {
     return $(`
         <div class="card m-1">
@@ -23,7 +31,7 @@ const createSampleInput = (segment_src, segment_label, i) => {
 const createSampleOutput = (segment_src, segment_gt_label, i) => {
     return $(`
         <div class="card m-1 ${segment_gt_label}">
-            <video width="100" controls autoplay loop muted class="p-2">
+            <video width="85" controls autoplay loop muted class="p-2">
                 <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
             </video>
         </div>
@@ -66,6 +74,7 @@ async function selectQuery(query_idx) {
 }
 
 async function iterativeSynthesis(init) {
+    $(this).attr("disabled", true);
     // TODO: fix button names and ids
     var url;
     if (init == 'init') {
@@ -160,7 +169,7 @@ async function iterativeSynthesis(init) {
         }
 
         //Positive Gallery
-        var pos_predictions = $("<div></div>").addClass("d-flex flex-wrap border border-1 border-secondary"); //document.getElementById("pos-gallery");
+        var pos_predictions = $("<div></div>").addClass("d-flex justify-content-evenly flex-wrap border border-1 border-secondary"); //document.getElementById("pos-gallery");
         var pos_heading = $("<h6>Positive</h6>").addClass("p-2 w-100");
         var breakdiv = $("<div></div>").addClass("w-36");
         pos_predictions.append(pos_heading);
@@ -178,7 +187,7 @@ async function iterativeSynthesis(init) {
         }
 
         //Negative gallery
-        var neg_predictions = $("<div></div>").addClass("d-flex flex-wrap border border-1 border-secondary"); //document.getElementById("neg-gallery");
+        var neg_predictions = $("<div></div>").addClass("d-flex justify-content-evenly flex-wrap border border-1 border-secondary"); //document.getElementById("neg-gallery");
         var neg_heading = $("<h6>Negative</h6>").addClass("p-2 w-100")
         neg_predictions.append(neg_heading)
         neg_predictions.append(breakdiv)
@@ -192,8 +201,7 @@ async function iterativeSynthesis(init) {
             neg_predictions.append(createSampleOutput(predicted_neg_segments[i], bkgrnd_class, i));
         }
 
-
-        var heading = $("<h5>Prediction</h5>")
+        var heading = $("<h3></h3>").addClass("mb-3").text("Best Query on Test Data")
         prediction_container.append(heading);
 
         prediction_container.append(createStats(num_pred_pos, num_pred_neg, num_false_pos, num_false_neg));
