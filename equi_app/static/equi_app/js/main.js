@@ -160,9 +160,10 @@ async function iterativeSynthesis(init) {
             .text("Confirm labels");
         button_div.append(button);
         main_container.append(button_div);
-        // Update prediction
-        var prediction_container = $("#prediction-container").empty();
 
+        // Update prediction
+        $('.popover').remove();
+        var prediction_container = $("#prediction-container").empty();
         var heading = $("<h3></h3>").addClass("mb-3").text("Best Query on Test Data")
         prediction_container.append(heading);
 
