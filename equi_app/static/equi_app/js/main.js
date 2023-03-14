@@ -60,16 +60,21 @@ const createStats = (num_pos, num_neg, num_false_pos, num_false_neg) => {
     var recall = (num_true_pos/(num_true_pos + num_false_neg));
     var f1 = (2*precision*recall)/(precision + recall);
     return $(`
-        <div class="mt-2">
-            <p> # of Positive Predictions: ${num_pos} </p>
-            <p> # of Negative Predictions: ${num_neg} </p>
-            <p> # of False Positive Predictions: ${num_false_pos} </p>
-            <p> # of False Negative Predictions: ${num_false_neg} </p>
+        <div class="alert alert-success mt-2">
+            <strong> # of Positive Predictions:</strong> ${num_pos}
             <br>
-            <p> Recall: ${recall.toFixed(3)} </p>
-            <p> Precision: ${precision.toFixed(3)} </p>
-            <p> F1 Score: ${f1.toFixed(3)} </p>
-
+            <strong> # of Negative Predictions:</strong> ${num_neg}
+            <br>
+            <strong> # of False Positive Predictions:</strong> ${num_false_pos}
+            <br>
+            <strong> # of False Negative Predictions:</strong> ${num_false_neg}
+        </div>
+        <div class="alert alert-success mt-2">
+            <strong> Recall:</strong> ${recall.toFixed(3)}
+            <br>
+            <strong> Precision:</strong> ${precision.toFixed(3)}
+            <br>
+            <strong> F1 Score:</strong> ${f1.toFixed(3)}
         </div>
     `);
 }
@@ -168,7 +173,7 @@ async function iterativeSynthesis(init) {
         prediction_container.append(heading);
 
         // Best query details
-        var best_query_heading = $("<h5></h5>").text("Best query: " + best_query);
+        var best_query_heading = $("<span></span>").addClass("lead").text("Best query: " + best_query);
         prediction_container.append(best_query_heading);
 
         // Best query scene graph
