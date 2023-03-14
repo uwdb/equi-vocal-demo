@@ -38,13 +38,29 @@ const createSampleOutput = (segment_src, segment_gt_label, i) => {
     `);
 }
 
+const createSceneGraph = () => {
+    return $(`
+        <button id='best-query-graph-popover' type="button" class="btn btn-primary btn-sm ms-2" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-custom-class="custom-popover" data-bs-title="Scene graph visualization" data-bs-content='<div id="best-query-graph" class="row"></div>' data-bs-html="true">
+            Scene Graph
+        </button>
+    `);
+}
+
+const createDatalog = (query_datalog) => {
+    return $(`
+    <button id='best-query-datalog-popover' type="button" class="btn btn-primary btn-sm ms-2" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-custom-class="custom-popover" data-bs-title="Datalog rules" data-bs-content="<pre>${query_datalog}</pre>" data-bs-html="true">
+        Datalog
+    </button>
+    `);
+}
+
 const createStats = (num_pos, num_neg, num_false_pos, num_false_neg) => {
     var num_true_pos = num_pos - num_false_pos;
     var precision = (num_true_pos/num_pos);
     var recall = (num_true_pos/(num_true_pos + num_false_neg));
     var f1 = (2*precision*recall)/(precision + recall);
     return $(`
-        <div>
+        <div class="mt-2">
             <p> # of Positive Predictions: ${num_pos} </p>
             <p> # of Negative Predictions: ${num_neg} </p>
             <p> # of False Positive Predictions: ${num_false_pos} </p>
@@ -104,6 +120,7 @@ async function iterativeSynthesis(init) {
         var current_npos = data.current_npos;
         var current_nneg = data.current_nneg;
         var best_query = data.best_query;
+        var best_query_scene_graph = data.best_query_scene_graph;
         var best_score = data.best_score;
         // Append to the main container
         // Update heading
@@ -146,6 +163,25 @@ async function iterativeSynthesis(init) {
         // Update prediction
         var prediction_container = $("#prediction-container").empty();
 
+        var heading = $("<h3></h3>").addClass("mb-3").text("Best Query on Test Data")
+        prediction_container.append(heading);
+
+        // Best query details
+        var best_query_heading = $("<h5></h5>").text("Best query: " + best_query);
+        prediction_container.append(best_query_heading);
+
+        // Best query scene graph
+        prediction_container.append(createSceneGraph());
+        prediction_container.append(createDatalog(best_query));
+        const bestSceneGeraphPopoverTrigger = document.getElementById('best-query-graph-popover');
+        const bestDatalogPopoverTrigger = document.getElementById('best-query-datalog-popover');
+        new bootstrap.Popover(bestSceneGeraphPopoverTrigger);
+        new bootstrap.Popover(bestDatalogPopoverTrigger);
+        bestSceneGeraphPopoverTrigger.addEventListener('inserted.bs.popover', () => {
+            $('#best-query-graph').empty();
+            renderSceneGraph('#best-query-graph', best_query_scene_graph);
+        })
+
         var predicted_pos_segments = data.predicted_pos_video_paths;
         var predicted_neg_segments = data.predicted_neg_video_paths;
         var predicted_pos_gt_labels = data.predicted_pos_video_gt_labels;
@@ -168,6 +204,9 @@ async function iterativeSynthesis(init) {
             }
         }
 
+        // Stats
+        prediction_container.append(createStats(num_pred_pos, num_pred_neg, num_false_pos, num_false_neg));
+
         //Positive Gallery
         var pos_predictions = $("<div></div>").addClass("d-flex justify-content-evenly flex-wrap border border-1 border-secondary"); //document.getElementById("pos-gallery");
         var pos_heading = $("<h6>Positive</h6>").addClass("p-2 w-100");
@@ -185,6 +224,7 @@ async function iterativeSynthesis(init) {
 
             pos_predictions.append(createSampleOutput(predicted_pos_segments[i], bkgrnd_class, i));
         }
+        prediction_container.append(pos_predictions);
 
         //Negative gallery
         var neg_predictions = $("<div></div>").addClass("d-flex justify-content-evenly flex-wrap border border-1 border-secondary"); //document.getElementById("neg-gallery");
@@ -200,14 +240,6 @@ async function iterativeSynthesis(init) {
             }
             neg_predictions.append(createSampleOutput(predicted_neg_segments[i], bkgrnd_class, i));
         }
-
-        var heading = $("<h3></h3>").addClass("mb-3").text("Best Query on Test Data")
-        prediction_container.append(heading);
-
-        prediction_container.append(createStats(num_pred_pos, num_pred_neg, num_false_pos, num_false_neg));
-
-        prediction_container.append(pos_predictions);
-
         prediction_container.append(neg_predictions);
     }
 }

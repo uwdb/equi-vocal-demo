@@ -11,6 +11,7 @@ import pickle
 import sys
 sys.path.append("/Users/zhangenhao/Desktop/UW/Research/equi-vocal-demo/EQUI-VOCAL")
 from src.synthesize import test_algorithm_interactive
+from src.utils import str_to_program_postgres
 
 module_dir = os.path.dirname(__file__)   #get current directory
 with open(os.path.join(module_dir, 'example_queries.json')) as f:
@@ -140,4 +141,6 @@ def post_processing(log, test_video_paths, test_labels):
     log_copy["predicted_pos_video_gt_labels"] = predicted_pos_video_gt_labels
     log_copy["predicted_neg_video_paths"] = predicted_neg_video_paths
     log_copy["predicted_neg_video_gt_labels"] = predicted_neg_video_gt_labels
+
+    log_copy["best_query_scene_graph"] = str_to_program_postgres(log_copy["best_query"])
     return log_copy
