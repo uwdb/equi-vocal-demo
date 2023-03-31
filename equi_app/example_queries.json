@@ -27,8 +27,8 @@
         "config": "Labeling budget: 50; # initial positive examples: 5; # initial negative examples: 5; Beam width: 10.",
         "query_text": "A purple object is far from a cyan object, then they move near each other.",
         "query_scene_graph": [
-            {"scene_graph": [{"predicate": "LeftOf", "parameter": null, "variables": ["o0", "o1"]}, {"predicate": "Color", "parameter": "red", "variables": ["o0"]}, {"predicate": "Color", "parameter": "yellow", "variables": ["o1"]}], "duration_constraint": 10},
-            {"scene_graph": [{"predicate": "RightOf", "parameter": null, "variables": ["o0", "o1"]}], "duration_constraint": 10}
+            {"scene_graph": [{"predicate": "Far", "parameter": null, "variables": ["o0", "o1"]}, {"predicate": "Color", "parameter": "purple", "variables": ["o0"]}, {"predicate": "Color", "parameter": "cyan", "variables": ["o1"]}], "duration_constraint": 1},
+            {"scene_graph": [{"predicate": "Near", "parameter": null, "variables": ["o0", "o1"]}], "duration_constraint": 1}
         ],
         "query_datalog": "\ng1(vid, fid, oid1, oid2) :-\n    Objects(vid, fid, oid1, _, _, _, _, _),\n    Objects(vid, fid, oid2, _, _, _, _, _),\n    Relationships(vid, fid, _, oid1, 'Far', oid2),\n    Attributes(vid, fid, oid1, 'color', 'purple'),\n    Attributes(vid, fid, oid2, 'color', 'cyan'),\n    oid1 != oid2.\n\ng1_star(vid, fid, fid, oid1, oid2) :- g1(vid, fid, oid1, oid2).\ng1_star(vid, fid_start, fid_end, oid1, oid2) :-\n    g1_star(vid, fid_start, fid, oid1, oid2),\n    g1(vid, fid_end, oid1, oid2), fid_end = fid + 1.\n\ng2(vid, fid, oid1, oid2) :-\n    Objects(vid, fid, oid1, _, _, _, _, _),\n    Objects(vid, fid, oid2, _, _, _, _, _),\n    Relationships(vid, fid, _, oid1, 'Near', oid2),\n    oid1 != oid2.\n\ng2_star(vid, fid, fid, oid1, oid2) :- g2(vid, fid, oid1, oid2).\ng2_star(vid, fid_start, fid_end, oid1, oid2) :-\n    g2_star(vid, fid_start, fid, oid1, oid2),\n    g2(vid, fid_end, oid1, oid2), fid_end = fid + 1.\n\nq(vid) :- g1_star(vid, fid11, fid12, oid1, oid2),\n    g2_star(vid, fid21, fid22, oid1, oid2), fid21 > fid12.\n        ",
         "query_str": "Conjunction(Conjunction(Color_purple(o0), Color_cyan(o1)), Far_3.0(o0, o1)); Near_1.0(o0, o1)",
@@ -1965,10 +1965,10 @@
             0
         ],
         "config": "Labeling budget: 50; # initial positive examples: 5; # initial negative examples: 5; Beam width: 10.",
-        "query_text": "A red object is located to the left of a cube while a third object is located at the top, then the cube moves to the bottom.",
+        "query_text": "A red object is located to the left of a cube while a third object is located at the top, then the third object moves to the bottom.",
         "query_scene_graph": [
-            {"scene_graph": [{"predicate": "LeftOf", "parameter": null, "variables": ["o0", "o1"]}, {"predicate": "Color", "parameter": "red", "variables": ["o0"]}, {"predicate": "Color", "parameter": "yellow", "variables": ["o1"]}], "duration_constraint": 10},
-            {"scene_graph": [{"predicate": "RightOf", "parameter": null, "variables": ["o0", "o1"]}], "duration_constraint": 10}
+            {"scene_graph": [{"predicate": "LeftOf", "parameter": null, "variables": ["o0", "o1"]}, {"predicate": "Color", "parameter": "red", "variables": ["o0"]}, {"predicate": "Shape", "parameter": "cube", "variables": ["o1"]}, {"predicate": "TopQuadrant", "parameter": null, "variables": ["o2"]}], "duration_constraint": 1},
+            {"scene_graph": [{"predicate": "BottomQuadrant", "parameter": null, "variables": ["o2"]}], "duration_constraint": 1}
         ],
         "query_datalog": "\n        ",
         "query_str": "Conjunction(Conjunction(Conjunction(Color_red(o0), LeftOf(o0, o1)), Shape_cube(o1)), TopQuadrant(o2)); BottomQuadrant(o2)",

@@ -18,21 +18,28 @@ with open(os.path.join(module_dir, 'example_queries.json')) as f:
     example_queries = json.load(f)
 
 class index(APIView):
-    def get(self, request, query_idx=1, format=None):
+    def get(self, request, query_idx=0, format=None):
         request.session.clear()
         request.session['query_idx'] = query_idx
         example_query = example_queries[query_idx]
         vids = example_query["vids"]
         labels = example_query["labels"]
         query_text = example_query["query_text"]
-        query_scene_graph = example_query["query_scene_graph"]
+        query_scene_graph = str_to_program_postgres(example_query["query_str"])
+        print(example_query["query_str"])
+        print(query_scene_graph)
         query_datalog = example_query["query_datalog"]
+        if query_idx != 3:
+            config = example_query["config"]
+        else:
+            config = None
         context = {
             'video_paths': [('equi_app/clevrer/video_{}-{}/video_{}.mp4'.format(str(vid//1000*1000).zfill(5), str((vid//1000+1)*1000).zfill(5), str(vid).zfill(5)), label) for vid, label in zip(vids, labels)],
             'query_text': query_text,
             'query_datalog': query_datalog,
             'show_parameters': query_idx == 3,
             'query_scene_graph': query_scene_graph,
+            'config': config
         }
         request.session.modified = True
         print("query_idx:", request.session['query_idx'])

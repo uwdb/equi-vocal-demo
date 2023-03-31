@@ -11,10 +11,52 @@ myPopoverTrigger.addEventListener('inserted.bs.popover', () => {
     renderSceneGraph('#image-graph', graph);
   })
 
+const configPopoverTrigger = document.getElementById('config-popover');
+if (configPopoverTrigger) {
+    configPopoverTrigger.addEventListener('inserted.bs.popover', () => {
+        $('#config-form').html(`
+            <form>
+            <div class="row">
+            <label for="labelingBudget" class="col-sm-2 col-form-label">Labeling Budget</label>
+            <div class="col-sm-2">
+                <select class="form-select">
+                    <option value="1" selected>30</option>
+                    <option value="2">50</option>
+                    <option value="3">100</option>
+                </select>
+            </div>
+            <label for="initExamples" class="col-sm-2 col-form-label"># Initial Examples</label>
+            <div class="col-sm-2">
+                <select class="form-select">
+                    <option value="10" selected>10</option>
+                    <option value="20">20</option>
+                    <option value="30">30</option>
+                    <option value="40">40</option>
+                    <option value="50">50</option>
+                </select>
+            </div>
+            <label for="beamWidth" class="col-sm-2 col-form-label">Beam Width</label>
+            <div class="col-sm-2">
+                <select class="form-select">
+                    <option value="1">1</option>
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                </select>
+            </div>
+            </div>
+            <button type="submit" class="mt-3 btn btn-outline-primary">Set parameters</button>
+        </form>
+        `);
+    })
+}
+
+
 const createSampleInput = (segment_src, segment_label, i) => {
     return $(`
         <div class="card m-1">
-            <video width="240" controls autoplay loop muted class="p-2">
+            <video width="180" controls autoplay loop muted class="p-2">
                 <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
             </video>
             <div class="card-body btn-group btn-group-sm" role="group" aria-label="Binary label of the video segment">
@@ -40,7 +82,7 @@ const createSampleOutput = (segment_src, segment_gt_label, i) => {
 
 const createSceneGraph = () => {
     return $(`
-        <button id='best-query-graph-popover' type="button" class="btn btn-primary btn-sm ms-2" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-custom-class="custom-popover" data-bs-title="Scene graph visualization" data-bs-content='<div id="best-query-graph" class="row"></div>' data-bs-html="true">
+        <button id='best-query-graph-popover' type="button" class="btn btn-primary btn-sm ms-2" style="--bs-btn-padding-y: .2rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .7rem;" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-custom-class="custom-popover" data-bs-title="Scene graph visualization" data-bs-content='<div id="best-query-graph" class="row"></div>' data-bs-html="true">
             Scene Graph
         </button>
     `);
@@ -48,7 +90,7 @@ const createSceneGraph = () => {
 
 const createDatalog = (query_datalog) => {
     return $(`
-    <button id='best-query-datalog-popover' type="button" class="btn btn-primary btn-sm ms-2" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-custom-class="custom-popover" data-bs-title="Datalog rules" data-bs-content="<pre>${query_datalog}</pre>" data-bs-html="true">
+    <button id='best-query-datalog-popover' type="button" class="btn btn-primary btn-sm ms-2" style="--bs-btn-padding-y: .2rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .7rem;" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-custom-class="custom-popover" data-bs-title="Datalog rules" data-bs-content="<pre>${query_datalog}</pre>" data-bs-html="true">
         Datalog
     </button>
     `);
@@ -138,15 +180,22 @@ async function iterativeSynthesis(init) {
             <strong>Current positive examples</strong>: ${current_npos}
             <br>
             <strong>Current negative examples</strong>: ${current_nneg}
+            <br>
+            <strong>Top-10 queries (with scores)</strong>:
+            <select class="form-select form-select-sm mt-2">
+            <option selected>${best_query} (${best_score.toFixed(3)})</option>
+            <option value="1">One</option>
+            <option value="2">Two</option>
+            <option value="3">Three</option>
+            </select>
         `);
         main_container.append(stats);
         // Update the top-k query
-        var top_k_queries_div = $("<div></div>").addClass("alert alert-info").html(`
-            <strong>Top-1 query</strong>: ${best_query}
-            <br>
-            <strong>Top-1 score</strong>: ${best_score}
-        `);
-        main_container.append(top_k_queries_div);
+        // var top_k_queries_div = $("<div></div>").addClass("alert alert-info").html(`
+
+        // `);
+
+        // main_container.append(top_k_queries_div);
         // Update gallery
         var gallery = $("<div></div>").addClass("d-flex flex-wrap border border-1 border-secondary");
         for (var i = 0; i < segments.length; i++) {
@@ -173,7 +222,7 @@ async function iterativeSynthesis(init) {
         prediction_container.append(heading);
 
         // Best query details
-        var best_query_heading = $("<span></span>").addClass("lead").text("Best query: " + best_query);
+        var best_query_heading = $("<span></span>").addClass("lead fs-6").text("Best query: " + best_query);
         prediction_container.append(best_query_heading);
 
         // Best query scene graph
@@ -214,7 +263,7 @@ async function iterativeSynthesis(init) {
         prediction_container.append(createStats(num_pred_pos, num_pred_neg, num_false_pos, num_false_neg));
 
         //Positive Gallery
-        var pos_predictions = $("<div></div>").addClass("d-flex justify-content-evenly flex-wrap border border-1 border-secondary"); //document.getElementById("pos-gallery");
+        var pos_predictions = $("<div></div>").addClass("d-flex justify-content-evenly flex-wrap border border-1 border-secondary mb-3"); //document.getElementById("pos-gallery");
         var pos_heading = $("<h6>Positive</h6>").addClass("p-2 w-100");
         var breakdiv = $("<div></div>").addClass("w-36");
         pos_predictions.append(pos_heading);
