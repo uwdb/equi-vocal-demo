@@ -30,10 +30,27 @@
         <h1>EQUI-VOCAL</h1>
         <nav class="navbar navbar-light mb-2">
             <form class="container-fluid justify-content-start">
-              <a class="btn btn-outline-success me-2" type="button" href="0">Query 1</a>
-              <a class="btn btn-outline-success me-2" type="button" href="1">Query 2</a>
-              <a class="btn btn-outline-success me-2" type="button" href="2">Query 3</a>
-              <a class="btn btn-outline-success me-2" type="button" href="3">Live Query</a>
+                {% if query_idx == 0 %}
+                <a class="btn btn-success me-2" type="button" href="0">Query 1</a>
+                {% else %}
+                <a class="btn btn-outline-success me-2" type="button" href="0">Query 1</a>
+                {% endif %}
+                {% if query_idx == 1 %}
+                <a class="btn btn-success me-2" type="button" href="1">Query 2</a>
+                {% else %}
+                <a class="btn btn-outline-success me-2" type="button" href="1">Query 2</a>
+                {% endif %}
+                {% if query_idx == 2 %}
+                <a class="btn btn-success me-2" type="button" href="2">Query 3</a>
+                {% else %}
+                <a class="btn btn-outline-success me-2" type="button"
+                href="2">Query 3</a>
+                {% endif %}
+                {% if query_idx == 3 %}
+                <a class="btn btn-success me-2" type="button" href="3">Live Query</a>
+                {% else %}
+                <a class="btn btn-outline-success me-2" type="button" href="3">Live Query</a>
+                {% endif %}
             </form>
         </nav>
         <span class="lead">Target Query: {{ query_text }} </span>
