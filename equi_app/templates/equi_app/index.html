@@ -28,20 +28,15 @@
 <body>
     <nav class="navbar navbar-expand-md navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <img class="me-2" src="{% static 'equi_app/logo-white.png' %}" alt="Logo" width="30" height="24" class="d-inline-block align-text-top">
+            <a class="navbar-brand" href="{{ query_idx }}">
+                <img class="me-2" src="{% static 'equi_app/img/logo-white.png' %}" alt="Logo" height="24" class="d-inline-block align-text-top">
                 EQUI-VOCAL
               </a>
-            <!-- <a class="navbar-brand" href="#">EQUI-VOCAL</a> -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link" href="prep_data">Select data</a>
-                    </li>
-                    <div class="vr"></div>
                     <li class="nav-item">
                         {% if query_idx == 0 %}
                         <a class="nav-link active" href="0">Query 1</a>
@@ -71,6 +66,7 @@
                         {% endif %}
                     </li>
                 </ul>
+                <a class="btn btn-success" href="prep_data" role="button">Select data</a>
             </div>
         </div>
     </nav>
@@ -91,31 +87,6 @@
             Configuration
         </button>
         {% endif %}
-
-        <!-- Hard-coded for demo paper -->
-        <div class="row mt-4">
-            <div class="col-4 border">
-                <h5 class="mt-2">Select data and user-defined functions:</h5>
-                <div class="text-muted">Video collections</div>
-                <select class="form-select" aria-label="Default select example">
-                    <option selected>CLEVRER dataset</option>
-                    <option value="1">One</option>
-                    <option value="2">Two</option>
-                    <option value="3">Three</option>
-                </select>
-                <div class="text-muted">User-defined functions</div>
-                <select class="form-select" multiple>
-                    <option value="1">Mask R-CNN</option>
-                    <option value="2">Color</option>
-                    <option value="3">Shape</option>
-                    <option value="4">Material</option>
-                    <option value="5">RightOf</option>
-                </select>
-                <div class="d-flex justify-content-center p-3">
-                    <button type="button" class="btn btn-outline-primary">Go</button>
-                </div>
-            </div>
-        </div>
 
         <div class="row h-75 pt-5">
             <div class="col-7 mh-100">

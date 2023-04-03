@@ -1,3 +1,4 @@
+from django.views.generic.base import TemplateView
 from django.urls import include, path
 from rest_framework import routers
 from . import views
@@ -8,6 +9,7 @@ router = routers.DefaultRouter()
 
 urlpatterns = [
     path('', views.index.as_view(), name='index'),
+    path('prep_data/', TemplateView.as_view(template_name='equi_app/prep_data.html')),
     path('<int:query_idx>/', views.index.as_view(), name='index'),
     path('show_more_segments/', views.show_more_segments.as_view()),
     path('iterative_synthesis/', views.iterative_synthesis.as_view()),
