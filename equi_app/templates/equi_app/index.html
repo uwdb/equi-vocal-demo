@@ -26,33 +26,55 @@
 </head>
 
 <body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <img class="me-2" src="{% static 'equi_app/logo-white.png' %}" alt="Logo" width="30" height="24" class="d-inline-block align-text-top">
+                EQUI-VOCAL
+              </a>
+            <!-- <a class="navbar-brand" href="#">EQUI-VOCAL</a> -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="prep_data">Select data</a>
+                    </li>
+                    <div class="vr"></div>
+                    <li class="nav-item">
+                        {% if query_idx == 0 %}
+                        <a class="nav-link active" href="0">Query 1</a>
+                        {% else %}
+                        <a class="nav-link" href="0">Query 1</a>
+                        {% endif %}
+                    </li>
+                    <li class="nav-item">
+                        {% if query_idx == 1 %}
+                        <a class="nav-link active" href="1">Query 2</a>
+                        {% else %}
+                        <a class="nav-link" href="1">Query 2</a>
+                        {% endif %}
+                    </li>
+                    <li class="nav-item">
+                        {% if query_idx == 2 %}
+                        <a class="nav-link active" href="2">Query 3</a>
+                        {% else %}
+                        <a class="nav-link" href="2">Query 3</a>
+                        {% endif %}
+                    </li>
+                    <li class="nav-item">
+                        {% if query_idx == 3 %}
+                        <a class="nav-link active" href="3">Live Query</a>
+                        {% else %}
+                        <a class="nav-link" href="3">Live Query</a>
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
     <div class="container pt-5 h-100">
-        <h1>EQUI-VOCAL</h1>
-        <nav class="navbar navbar-light mb-2">
-            <form class="container-fluid justify-content-start">
-                {% if query_idx == 0 %}
-                <a class="btn btn-success me-2" type="button" href="0">Query 1</a>
-                {% else %}
-                <a class="btn btn-outline-success me-2" type="button" href="0">Query 1</a>
-                {% endif %}
-                {% if query_idx == 1 %}
-                <a class="btn btn-success me-2" type="button" href="1">Query 2</a>
-                {% else %}
-                <a class="btn btn-outline-success me-2" type="button" href="1">Query 2</a>
-                {% endif %}
-                {% if query_idx == 2 %}
-                <a class="btn btn-success me-2" type="button" href="2">Query 3</a>
-                {% else %}
-                <a class="btn btn-outline-success me-2" type="button"
-                href="2">Query 3</a>
-                {% endif %}
-                {% if query_idx == 3 %}
-                <a class="btn btn-success me-2" type="button" href="3">Live Query</a>
-                {% else %}
-                <a class="btn btn-outline-success me-2" type="button" href="3">Live Query</a>
-                {% endif %}
-            </form>
-        </nav>
         <span class="lead">Target Query: {{ query_text }} </span>
         <button id='image-graph-popover' type="button" class="btn btn-primary btn-sm ms-2" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-custom-class="custom-popover" data-bs-title="Scene graph visualization" data-bs-content='<div id="image-graph" class="row"></div>' data-bs-html="true">
             Scene Graph
@@ -131,9 +153,15 @@
                                 <button type="button" class="btn btn-outline-primary" onclick="showMoreSegments()">Show
                                     me
                                     more</button>
+                                {% if query_idx == 3 %}
+                                <button type="button" class="btn btn-outline-primary"
+                                    onclick="iterativeSynthesis('live')">Ready to
+                                    go!</button>
+                                {% else %}
                                 <button type="button" class="btn btn-outline-primary"
                                     onclick="iterativeSynthesis('init')">Ready to
                                     go!</button>
+                                {% endif %}
                             </div>
                         </div>
                         <!-- <div id="prediction"></div> -->

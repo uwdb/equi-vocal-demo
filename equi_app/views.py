@@ -17,9 +17,13 @@ module_dir = os.path.dirname(__file__)   #get current directory
 with open(os.path.join(module_dir, 'example_queries.json')) as f:
     example_queries = json.load(f)
 
+user_to_obj = {}
+
 class index(APIView):
     def get(self, request, query_idx=0, format=None):
         request.session.clear()
+        if request.session.session_key in user_to_obj:
+            del user_to_obj[request.session.session_key]
         request.session['query_idx'] = query_idx
         example_query = example_queries[query_idx]
         vids = example_query["vids"]
@@ -35,9 +39,9 @@ class index(APIView):
             config = None
         context = {
             'video_paths': [('equi_app/clevrer/video_{}-{}/video_{}.mp4'.format(str(vid//1000*1000).zfill(5), str((vid//1000+1)*1000).zfill(5), str(vid).zfill(5)), label) for vid, label in zip(vids, labels)],
+            'query_idx': query_idx,
             'query_text': query_text,
             'query_datalog': query_datalog,
-            'show_parameters': query_idx == 3,
             'query_scene_graph': query_scene_graph,
             'config': config
         }
@@ -118,6 +122,73 @@ class iterative_synthesis_init(APIView):
         request.session["iteration"] = 0
         request.session["log"] = log
         return JsonResponse(post_processing(log[0], test_video_paths, test_labels.tolist()))
+
+class iterative_synthesis_live(APIView):
+    def get(self, request, format=None):
+        # request.session['query_idx'] = 1
+        print("query_idx:", request.session["query_idx"])
+        query_idx = request.session['query_idx']
+        example_query = example_queries[query_idx]
+
+        predicate_dict = [{"name": "Near", "parameters": [1], "nargs": 2}, {"name": "Far", "parameters": [3], "nargs": 2}, {"name": "LeftOf", "parameters": None, "nargs": 2}, {"name": "Behind", "parameters": None, "nargs": 2}, {"name": "RightOf", "parameters": None, "nargs": 2}, {"name": "FrontOf", "parameters": None, "nargs": 2}, {"name": "RightQuadrant", "parameters": None, "nargs": 1}, {"name": "LeftQuadrant", "parameters": None, "nargs": 1}, {"name": "TopQuadrant", "parameters": None, "nargs": 1}, {"name": "BottomQuadrant", "parameters": None, "nargs": 1}, {"name": "Color", "parameters": ["gray", "red", "blue", "green", "brown", "cyan", "purple", "yellow"], "nargs": 1}, {"name": "Shape", "parameters": ["cube", "sphere", "cylinder"], "nargs": 1}, {"name": "Material", "parameters": ["metal", "rubber"], "nargs": 1}]
+
+        input_dir = "/Users/zhangenhao/Desktop/UW/Research/equi-vocal-demo/EQUI-VOCAL/inputs"
+        dataset_name = "demo_queries_scene_graph"
+        query_str = example_query["query_str"]
+        # query_str = 'Conjunction(Conjunction(Color_red(o0), Color_yellow(o1)), LeftOf(o0, o1)); RightOf(o0, o1)'
+
+        with open(os.path.join(input_dir, dataset_name, "train/{}_inputs.json".format(query_str)), 'r') as f:
+            inputs = json.load(f)
+        with open(os.path.join(input_dir, dataset_name, "train/{}_labels.json".format(query_str)), 'r') as f:
+            labels = json.load(f)
+        inputs = np.asarray(inputs)
+        labels = np.asarray(labels)
+
+        # Test dataset for interactive demo
+        with open(os.path.join(input_dir, dataset_name, "test/{}_inputs.json".format(query_str)), 'r') as f:
+            test_inputs = json.load(f)
+        with open(os.path.join(input_dir, dataset_name, "test/{}_labels.json".format(query_str)), 'r') as f:
+            test_labels = json.load(f)
+
+        test_inputs = np.asarray(test_inputs)[:100]
+        test_labels = np.asarray(test_labels)[:100]
+        test_video_paths = [static('equi_app/clevrer/video_{}-{}/video_{}.mp4'.format(str(vid//1000*1000).zfill(5), str((vid//1000+1)*1000).zfill(5), str(vid).zfill(5))) for vid in test_inputs]
+        request.session["test_video_paths"] = test_video_paths
+        request.session["test_labels"] = test_labels.tolist()
+        print("test_labels", test_labels)
+
+        if request.session.session_key not in user_to_obj:
+            # First time, initialize the algorithm
+            algorithm = test_algorithm_interactive(method="vocal_postgres", dataset_name=dataset_name, n_init_pos=10, n_init_neg=10, npred=7, depth=3, max_duration=15, beam_width=10, pool_size=100, k=100, budget=50, multithread=8, query_str=query_str, predicate_dict=predicate_dict, lru_capacity=None, reg_lambda=0.001, strategy='topk', max_vars=3, port=5432, input_dir=input_dir)
+            # user_to_obj[request.session.session_key] = algorithm
+            request.session["iteration"] = 0
+        else:
+            algorithm = user_to_obj[request.session.session_key]
+            request.session["iteration"] += 1
+        log_dict = algorithm.interactive_main()
+        user_to_obj[request.session.session_key] = algorithm
+
+        print("iteration done")
+
+        if log_dict["terminated"]:
+            request.session = {}
+            return JsonResponse({"terminated": True})
+        else:
+            response = {}
+            response["iteration"] = log_dict["iteration"]
+            selected_segments = log_dict["selected_segments"]
+            response["selected_gt_labels"] = log_dict["selected_gt_labels"]
+            response["current_npos"] = log_dict["current_npos"]
+            response["current_nneg"] = log_dict["current_nneg"]
+            response["best_query"] = log_dict["best_query"]
+            response["best_score"] = log_dict["best_score"]
+            response["terminated"] = log_dict["terminated"]
+            response["video_paths"] = [static('equi_app/clevrer/video_{}-{}/video_{}.mp4'.format(str(inputs[idx]//1000*1000).zfill(5), str((inputs[idx]//1000+1)*1000).zfill(5), str(inputs[idx]).zfill(5))) for idx in selected_segments]
+            response["predicted_labels_test"] = log_dict["predicted_labels_test"]
+
+            # request.session["iteration"] = 0
+            return JsonResponse(post_processing(response, test_video_paths, test_labels.tolist()))
+
 
 class iterative_synthesis(APIView):
     def get(self, request, format=None):

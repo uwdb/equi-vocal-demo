@@ -132,9 +132,9 @@ async function showMoreSegments() {
     }
 }
 
-async function selectQuery(query_idx) {
-    const response = await fetch("select_query/" + query_idx);
-}
+// async function selectQuery(query_idx) {
+//     const response = await fetch("select_query/" + query_idx);
+// }
 
 async function iterativeSynthesis(init) {
     $(this).attr("disabled", true);
@@ -142,6 +142,8 @@ async function iterativeSynthesis(init) {
     var url;
     if (init == 'init') {
         url = "iterative_synthesis_init/";
+    } else if (init == 'live') {
+        url = "iterative_synthesis_live/";
     } else {
         url = "iterative_synthesis/";
     }
@@ -207,11 +209,20 @@ async function iterativeSynthesis(init) {
         var button_div = $("<div></div>")
             .addClass("d-flex justify-content-center pt-5 pb-5")
             .attr('id', 'btn');
-        var button = $("<button></button>")
-            .addClass("btn btn-outline-primary")
-            .attr('onclick', "iterativeSynthesis()")
-            .attr('type', 'button')
-            .text("Confirm labels");
+        if (init == 'live') {
+            var button = $("<button></button>")
+                .addClass("btn btn-outline-primary")
+                .attr('onclick', "iterativeSynthesis('live')")
+                .attr('type', 'button')
+                .text("Confirm labels");
+        }
+        else {
+            var button = $("<button></button>")
+                .addClass("btn btn-outline-primary")
+                .attr('onclick', "iterativeSynthesis()")
+                .attr('type', 'button')
+                .text("Confirm labels");
+        }
         button_div.append(button);
         main_container.append(button_div);
 
