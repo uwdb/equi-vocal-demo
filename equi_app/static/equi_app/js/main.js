@@ -53,21 +53,40 @@ if (configPopoverTrigger) {
 }
 
 
-const createSampleInput = (segment_src, segment_label, i) => {
-    return $(`
-        <div class="card m-1">
-            <video width="180" controls autoplay loop muted class="p-2">
-                <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
-            </video>
-            <div class="card-body btn-group btn-group-sm" role="group" aria-label="Binary label of the video segment">
-                <input type="radio" class="btn-check" name="btnradio_${i}" id="btnradio1_${i}" autocomplete="off" ${segment_label == 1 ? 'checked' : 'disabled'}>
-                <label class="btn btn-outline-primary" for="btnradio1_${i}">Positive</label>
+const createSampleInput = (segment_src, segment_label, i, prefix, is_live) => {
+    console.log("is_live: ", is_live)
+    if (is_live) {
+        return $(`
+            <div class="card m-1">
+                <video width="180" controls autoplay loop muted class="p-2">
+                    <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
+                </video>
+                <div class="card-body btn-group btn-group-sm" role="group" aria-label="Binary label of the video segment">
+                    <input type="radio" class="btn-check to_submit" name="${prefix}_btnradio_${i}" id="${prefix}_btnradio1_${i}" autocomplete="off" checked>
+                    <label class="btn btn-outline-primary" for="${prefix}_btnradio1_${i}">Positive</label>
 
-                <input type="radio" class="btn-check" name="btnradio_${i}" id="btnradio2_${i}" autocomplete="off" ${segment_label == 1 ? 'disabled' : 'checked'}>
-                <label class="btn btn-outline-primary" for="btnradio2_${i}">Negative</label>
+                    <input type="radio" class="btn-check" name="${prefix}_btnradio_${i}" id="${prefix}_btnradio2_${i}" autocomplete="off">
+                    <label class="btn btn-outline-primary" for="${prefix}_btnradio2_${i}">Negative</label>
+                </div>
             </div>
-        </div>
-    `);
+        `);
+    }
+    else {
+        return $(`
+            <div class="card m-1">
+                <video width="180" controls autoplay loop muted class="p-2">
+                    <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
+                </video>
+                <div class="card-body btn-group btn-group-sm" role="group" aria-label="Binary label of the video segment">
+                    <input type="radio" class="btn-check" name="${prefix}_btnradio_${i}" id="${prefix}_btnradio1_${i}" autocomplete="off" ${segment_label == 1 ? 'checked' : 'disabled'}>
+                    <label class="btn btn-outline-primary" for="${prefix}_btnradio1_${i}">Positive</label>
+
+                    <input type="radio" class="btn-check" name="${prefix}_btnradio_${i}" id="${prefix}_btnradio2_${i}" autocomplete="off" ${segment_label == 1 ? 'disabled' : 'checked'}>
+                    <label class="btn btn-outline-primary" for="${prefix}_btnradio2_${i}">Negative</label>
+                </div>
+            </div>
+        `);
+    }
 }
 
 const createSampleOutput = (segment_src, segment_gt_label, i) => {
@@ -128,88 +147,215 @@ async function showMoreSegments() {
     var selected_gt_labels = data.labels;
     $("#gallery").empty();
     for (var i = 0; i < segments.length; i++) {
-        $("#gallery").append(createSampleInput(segments[i], selected_gt_labels[i], i));
+        $("#gallery").append(createSampleInput(segments[i], selected_gt_labels[i], i, "init"));
     }
 }
 
-// async function selectQuery(query_idx) {
-//     const response = await fetch("select_query/" + query_idx);
-// }
-
-async function iterativeSynthesis(init) {
+async function iterativeSynthesis(flag) {
     $(this).attr("disabled", true);
-    // TODO: fix button names and ids
-    var url;
-    if (init == 'init') {
-        url = "iterative_synthesis_init/";
-    } else if (init == 'live') {
-        url = "iterative_synthesis_live/";
-    } else {
-        url = "iterative_synthesis/";
+    // First thing: remove/disable the button, and show a spinner
+    var response;
+    if (flag == 'live') {
+        // Get the user labels
+        var user_labels = [];
+        var elementArray = document.getElementsByClassName("to_submit");
+        elementArray = [].slice.call(elementArray, 0);
+        for (var i = 0; i < elementArray.length; ++i) {
+            if (elementArray[i].checked) {
+                user_labels.push(1);
+            }
+            else {
+                user_labels.push(0);
+            }
+            elementArray[i].classList.replace("to_submit", "submitted")
+        }
+        console.log(user_labels);
+        // TODO: disable previous toggle buttons
+        const settings = {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                user_labels: user_labels
+            })
+        };
+        response = await fetch("iterative_synthesis_live/", settings);
     }
-    const response = await fetch(url);
+    else if (flag == 'init') {
+        response = await fetch("iterative_synthesis_init/");
+    } else {
+        response = await fetch("iterative_synthesis/");
+    }
     var data = await response.json();
     var main_container = $("#main-container");
-    if (data.terminated == true) {
+    if (data.state == "terminated") {
         // Update the gallery
         var heading = $("<h5></h5>").addClass("pt-5").text("Algorithm terminated.");
         main_container.append(heading);
         // Update button
         $("#btn").remove();
-        // TODO: Add a button to restart.
         var button = $("<div></div>").addClass("d-flex justify-content-center pt-3 pb-5").html(`
             <button type="button" class="btn btn-outline-primary" onclick="window.location.reload()">Restart</button>
         `);
         main_container.append(button);
     }
-    else {
+    else if (data.state == "label_more") {
+        // Only for live query task.
+        // Remove button
+        $("#btn").remove();
+        // Update the gallery
         var segments = data.video_paths;
         var iteration = data.iteration;
-        var selected_gt_labels = data.selected_gt_labels;
-        var current_npos = data.current_npos;
-        var current_nneg = data.current_nneg;
-        var best_query = data.best_query;
-        var best_query_scene_graph = data.best_query_scene_graph;
-        var best_score = data.best_score;
-        // Append to the main container
-        // Update heading
-        var heading = $("<h5></h5>").addClass("pt-5").text(`Iteration ${iteration}`);
-        main_container.append(heading);
-        // Update stats
-        var stats = $("<div></div>").addClass("alert alert-info mt-3").html(`
-            <strong>Current iteration</strong>: ${iteration}
-            <br>
-            <strong>Current positive examples</strong>: ${current_npos}
-            <br>
-            <strong>Current negative examples</strong>: ${current_nneg}
-            <br>
-            <strong>Top-10 queries (with scores)</strong>:
-            <select class="form-select form-select-sm mt-2">
-            <option selected>${best_query} (${best_score.toFixed(3)})</option>
-            <option value="1">One</option>
-            <option value="2">Two</option>
-            <option value="3">Three</option>
-            </select>
-        `);
-        main_container.append(stats);
-        // Update the top-k query
-        // var top_k_queries_div = $("<div></div>").addClass("alert alert-info").html(`
-
-        // `);
-
-        // main_container.append(top_k_queries_div);
-        // Update gallery
+        var sample_idx = data.sample_idx;
         var gallery = $("<div></div>").addClass("d-flex flex-wrap border border-1 border-secondary");
-        for (var i = 0; i < segments.length; i++) {
-            gallery.append(createSampleInput(segments[i], selected_gt_labels[i], i));
-        }
+        gallery.append(createSampleInput(segments[0], 0, sample_idx, iteration, flag == 'live')); // 0 is a dummy label
         main_container.append(gallery);
         // Update button
-        $("#btn").remove();
         var button_div = $("<div></div>")
             .addClass("d-flex justify-content-center pt-5 pb-5")
             .attr('id', 'btn');
-        if (init == 'live') {
+        var button = $("<button></button>")
+        .addClass("btn btn-outline-primary")
+        .attr('onclick', "iterativeSynthesis('live')")
+        .attr('type', 'button')
+        .text("Confirm labels");
+        button_div.append(button);
+        main_container.append(button_div);
+    }
+    else {
+        $("#btn").remove();
+        var segments = data.video_paths;
+        var iteration = data.iteration;
+        if (iteration > 0) {
+            var current_npos = data.current_npos;
+            var current_nneg = data.current_nneg;
+            var best_query = data.best_query;
+            var best_query_scene_graph = data.best_query_scene_graph;
+            var best_score = data.best_score;
+            // Update stats and top-k queries
+            var stats = $("<div></div>").addClass("alert alert-info mt-3").html(`
+                <strong>Current iteration</strong>: ${iteration}
+                <br>
+                <strong>Current positive examples</strong>: ${current_npos}
+                <br>
+                <strong>Current negative examples</strong>: ${current_nneg}
+                <br>
+                <strong>Top-10 queries (with scores)</strong>:
+                <select class="form-select form-select-sm mt-2">
+                <option selected>${best_query} (${best_score.toFixed(3)})</option>
+                <option value="1">One</option>
+                <option value="2">Two</option>
+                <option value="3">Three</option>
+                </select>
+            `);
+            main_container.append(stats);
+
+            // Update prediction
+            $('.popover').remove();
+            var prediction_container = $("#prediction-container").empty();
+            var heading = $("<h3></h3>").addClass("mb-3").text("Best Query on Test Data")
+            prediction_container.append(heading);
+
+            // Best query details
+            var best_query_heading = $("<span></span>").addClass("lead fs-6").text("Best query: " + best_query);
+            prediction_container.append(best_query_heading);
+
+            // Best query scene graph
+            prediction_container.append(createSceneGraph());
+            prediction_container.append(createDatalog(best_query));
+            const bestSceneGeraphPopoverTrigger = document.getElementById('best-query-graph-popover');
+            const bestDatalogPopoverTrigger = document.getElementById('best-query-datalog-popover');
+            new bootstrap.Popover(bestSceneGeraphPopoverTrigger);
+            new bootstrap.Popover(bestDatalogPopoverTrigger);
+            bestSceneGeraphPopoverTrigger.addEventListener('inserted.bs.popover', () => {
+                $('#best-query-graph').empty();
+                renderSceneGraph('#best-query-graph', best_query_scene_graph);
+            })
+
+            var predicted_pos_segments = data.predicted_pos_video_paths;
+            var predicted_neg_segments = data.predicted_neg_video_paths;
+            var predicted_pos_gt_labels = data.predicted_pos_video_gt_labels;
+            var predicted_neg_gt_labels = data.predicted_neg_video_gt_labels;
+
+            var num_pred_pos = predicted_pos_segments.length;
+            var num_pred_neg = predicted_neg_segments.length;
+
+            //Counting true positives
+            var num_false_pos = 0;
+            for(var i = 0; i < predicted_pos_gt_labels.length; i++){
+                if(predicted_pos_gt_labels[i] ==0){
+                    num_false_pos += 1;
+                }
+            }
+            var num_false_neg = 0;
+            for(var i = 0; i < predicted_neg_gt_labels.length; i++){
+                if(predicted_neg_gt_labels[i] ==1){
+                    num_false_neg += 1;
+                }
+            }
+
+            // Stats
+            prediction_container.append(createStats(num_pred_pos, num_pred_neg, num_false_pos, num_false_neg));
+
+            //Positive Gallery
+            var pos_predictions = $("<div></div>").addClass("d-flex justify-content-evenly flex-wrap border border-1 border-secondary mb-3"); //document.getElementById("pos-gallery");
+            var pos_heading = $("<h6>Positive</h6>").addClass("p-2 w-100");
+            var breakdiv = $("<div></div>").addClass("w-36");
+            pos_predictions.append(pos_heading);
+            pos_predictions.append(breakdiv);
+
+            for (var i = 0; i < predicted_pos_segments.length; i++) {
+                if(predicted_pos_gt_labels[i]==1){
+                    bkgrnd_class = "bg-success";
+                }
+                else{
+                    bkgrnd_class = "bg-danger";
+                }
+
+                pos_predictions.append(createSampleOutput(predicted_pos_segments[i], bkgrnd_class, i));
+            }
+            prediction_container.append(pos_predictions);
+
+            //Negative gallery
+            var neg_predictions = $("<div></div>").addClass("d-flex justify-content-evenly flex-wrap border border-1 border-secondary"); //document.getElementById("neg-gallery");
+            var neg_heading = $("<h6>Negative</h6>").addClass("p-2 w-100")
+            neg_predictions.append(neg_heading)
+            neg_predictions.append(breakdiv)
+            for (var i = 0; i < predicted_neg_segments.length; i++) {
+                if(predicted_neg_gt_labels[i]==0){
+                    bkgrnd_class = "bg-success";
+                }
+                else{
+                    bkgrnd_class = "bg-danger";
+                }
+                neg_predictions.append(createSampleOutput(predicted_neg_segments[i], bkgrnd_class, i));
+            }
+            prediction_container.append(neg_predictions);
+        }
+        var selected_gt_labels;
+        if (flag == 'live') {
+            // Live query task doesn't have ground truth labels, so we create a dummy array
+            selected_gt_labels = new Array(segments.length).fill(0);
+        }
+        else {
+            selected_gt_labels = data.selected_gt_labels;
+        }
+        // Update heading
+        var heading = $("<h5></h5>").addClass("pt-5").text(`Iteration ${iteration}`);
+        main_container.append(heading);
+        // Update gallery
+        var gallery = $("<div></div>").addClass("d-flex flex-wrap border border-1 border-secondary");
+        for (var i = 0; i < segments.length; i++) {
+            gallery.append(createSampleInput(segments[i], selected_gt_labels[i], i, iteration, flag == 'live'));
+        }
+        main_container.append(gallery);
+        // Update button
+        var button_div = $("<div></div>")
+            .addClass("d-flex justify-content-center pt-5 pb-5")
+            .attr('id', 'btn');
+        if (flag == 'live') {
             var button = $("<button></button>")
                 .addClass("btn btn-outline-primary")
                 .attr('onclick', "iterativeSynthesis('live')")
@@ -225,87 +371,5 @@ async function iterativeSynthesis(init) {
         }
         button_div.append(button);
         main_container.append(button_div);
-
-        // Update prediction
-        $('.popover').remove();
-        var prediction_container = $("#prediction-container").empty();
-        var heading = $("<h3></h3>").addClass("mb-3").text("Best Query on Test Data")
-        prediction_container.append(heading);
-
-        // Best query details
-        var best_query_heading = $("<span></span>").addClass("lead fs-6").text("Best query: " + best_query);
-        prediction_container.append(best_query_heading);
-
-        // Best query scene graph
-        prediction_container.append(createSceneGraph());
-        prediction_container.append(createDatalog(best_query));
-        const bestSceneGeraphPopoverTrigger = document.getElementById('best-query-graph-popover');
-        const bestDatalogPopoverTrigger = document.getElementById('best-query-datalog-popover');
-        new bootstrap.Popover(bestSceneGeraphPopoverTrigger);
-        new bootstrap.Popover(bestDatalogPopoverTrigger);
-        bestSceneGeraphPopoverTrigger.addEventListener('inserted.bs.popover', () => {
-            $('#best-query-graph').empty();
-            renderSceneGraph('#best-query-graph', best_query_scene_graph);
-        })
-
-        var predicted_pos_segments = data.predicted_pos_video_paths;
-        var predicted_neg_segments = data.predicted_neg_video_paths;
-        var predicted_pos_gt_labels = data.predicted_pos_video_gt_labels;
-        var predicted_neg_gt_labels = data.predicted_neg_video_gt_labels;
-
-        var num_pred_pos = predicted_pos_segments.length;
-        var num_pred_neg = predicted_neg_segments.length;
-
-        //Counting true positives
-        var num_false_pos = 0;
-        for(var i = 0; i < predicted_pos_gt_labels.length; i++){
-            if(predicted_pos_gt_labels[i] ==0){
-                num_false_pos += 1;
-            }
-        }
-        var num_false_neg = 0;
-        for(var i = 0; i < predicted_neg_gt_labels.length; i++){
-            if(predicted_neg_gt_labels[i] ==1){
-                num_false_neg += 1;
-            }
-        }
-
-        // Stats
-        prediction_container.append(createStats(num_pred_pos, num_pred_neg, num_false_pos, num_false_neg));
-
-        //Positive Gallery
-        var pos_predictions = $("<div></div>").addClass("d-flex justify-content-evenly flex-wrap border border-1 border-secondary mb-3"); //document.getElementById("pos-gallery");
-        var pos_heading = $("<h6>Positive</h6>").addClass("p-2 w-100");
-        var breakdiv = $("<div></div>").addClass("w-36");
-        pos_predictions.append(pos_heading);
-        pos_predictions.append(breakdiv);
-
-        for (var i = 0; i < predicted_pos_segments.length; i++) {
-            if(predicted_pos_gt_labels[i]==1){
-                bkgrnd_class = "bg-success";
-            }
-            else{
-                bkgrnd_class = "bg-danger";
-            }
-
-            pos_predictions.append(createSampleOutput(predicted_pos_segments[i], bkgrnd_class, i));
-        }
-        prediction_container.append(pos_predictions);
-
-        //Negative gallery
-        var neg_predictions = $("<div></div>").addClass("d-flex justify-content-evenly flex-wrap border border-1 border-secondary"); //document.getElementById("neg-gallery");
-        var neg_heading = $("<h6>Negative</h6>").addClass("p-2 w-100")
-        neg_predictions.append(neg_heading)
-        neg_predictions.append(breakdiv)
-        for (var i = 0; i < predicted_neg_segments.length; i++) {
-            if(predicted_neg_gt_labels[i]==0){
-                bkgrnd_class = "bg-success";
-            }
-            else{
-                bkgrnd_class = "bg-danger";
-            }
-            neg_predictions.append(createSampleOutput(predicted_neg_segments[i], bkgrnd_class, i));
-        }
-        prediction_container.append(neg_predictions);
     }
 }
