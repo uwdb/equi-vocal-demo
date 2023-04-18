@@ -60,9 +60,44 @@
                     </li>
                     <li class="nav-item">
                         {% if query_idx == 3 %}
-                        <a class="nav-link active" href="3">Live Query</a>
+                        <a class="nav-link active" href="3">Live Query 1</a>
                         {% else %}
-                        <a class="nav-link" href="3">Live Query</a>
+                        <a class="nav-link" href="3">Live Query 1</a>
+                        {% endif %}
+                    </li>
+                    <li class="nav-item">
+                        {% if query_idx == 4 %}
+                        <a class="nav-link active" href="4">Live Query 2</a>
+                        {% else %}
+                        <a class="nav-link" href="4">Live Query 2</a>
+                        {% endif %}
+                    </li>
+                    <li class="nav-item">
+                        {% if query_idx == 5 %}
+                        <a class="nav-link active" href="5">Live Query 3</a>
+                        {% else %}
+                        <a class="nav-link" href="5">Live Query 3</a>
+                        {% endif %}
+                    </li>
+                    <li class="nav-item">
+                        {% if query_idx == 6 %}
+                        <a class="nav-link active" href="6">Live Query 4</a>
+                        {% else %}
+                        <a class="nav-link" href="6">Live Query 4</a>
+                        {% endif %}
+                    </li>
+                    <li class="nav-item">
+                        {% if query_idx == 7 %}
+                        <a class="nav-link active" href="7">Live Query 5</a>
+                        {% else %}
+                        <a class="nav-link" href="7">Live Query 5</a>
+                        {% endif %}
+                    </li>
+                    <li class="nav-item">
+                        {% if query_idx == 8 %}
+                        <a class="nav-link active" href="8">Live Query 6</a>
+                        {% else %}
+                        <a class="nav-link" href="8">Live Query 6</a>
                         {% endif %}
                     </li>
                 </ul>
@@ -88,8 +123,26 @@
         </button>
         {% endif %}
 
-        <div class="row h-75 pt-5">
-            <div class="col-7 mh-100">
+        <div class="row g-3 pt-3 align-items-center">
+            <div class="col-auto">
+              <label for="run_id" class="col-form-label">Run ID</label>
+            </div>
+            <div class="col-auto">
+              <input type="number" id="run_id" class="form-control" min="0" max="19" value="0">
+            </div>
+            <div class="col-auto">
+              <span class="form-text">
+               Between 0-19.
+              </span>
+            </div>
+            <div class="col-auto">
+                <button id="set_run_btn" type="button spinnable" class="btn btn-outline-primary" onclick="setRun()">Set run</button>
+            </div>
+        </div>
+
+        <div class="row h-85 pt-5">
+            <div class="col-12 mh-100">  <!-- For user study -->
+            <!-- <div class="col-7 mh-100">  For demo -->
                 <div class="border h-100 p-2 overflow-scroll">
                     <div id="main-container" class="m-3">
                         <h3 class="mb-3">Search on Training Data</h3>
@@ -97,31 +150,44 @@
                         <div id="gallery" class="d-flex flex-wrap border border-1 border-secondary">
                             {% for video_path, label in video_paths %}
                             <div class="card m-1">
-                                <video width="150" controls autoplay loop muted class="p-2">
+                                <video width="180" controls autoplay loop muted class="p-2">
                                     <source src="{% static video_path %}" type="video/mp4"> Your browser does not
                                     support the video tag.
                                 </video>
                                 <div class="card-body btn-group btn-group-sm p-2" role="group" aria-label="Binary label of the video segment">
-                                    {% if query_idx == 3 %}
-                                        <input type="radio" class="btn-check to_submit" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio1_{{ forloop.counter0 }}" autocomplete="off" checked>
-                                        <label class="btn btn-outline-primary" style="--bs-btn-padding-y: .2rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .7rem;" for="init_btnradio1_{{ forloop.counter0 }}">Positive</label>
+                                    {% if query_idx >= 3 %}
+                                        <!-- <input type="radio" class="btn-check to_submit" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio1_{{ forloop.counter0 }}" autocomplete="off" checked>
+                                        <label class="btn btn-outline-primary" for="init_btnradio1_{{ forloop.counter0 }}">Positive</label>
 
                                         <input type="radio" class="btn-check" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio2_{{ forloop.counter0 }}" autocomplete="off">
-                                        <label class="btn btn-outline-primary" style="--bs-btn-padding-y: .2rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .7rem;" for="init_btnradio2_{{ forloop.counter0 }}">Negative</label>
-                                    {% else %}
+                                        <label class="btn btn-outline-primary" for="init_btnradio2_{{ forloop.counter0 }}">Negative</label> -->
                                         {% if label == 1 %}
-                                        <input type="radio" class="btn-check" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio1_{{ forloop.counter0 }}" autocomplete="off" checked>
+                                        <input type="radio" class="btn-check to_submit" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio1_{{ forloop.counter0 }}" autocomplete="off" checked>
                                         {% else %}
-                                        <input type="radio" class="btn-check" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio1_{{ forloop.counter0 }}" autocomplete="off" disabled>
+                                        <input type="radio" class="btn-check to_submit" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio1_{{ forloop.counter0 }}" autocomplete="off" disabled>
                                         {% endif %}
-                                        <label class="btn btn-outline-primary" style="--bs-btn-padding-y: .2rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .7rem;" for="init_btnradio1_{{ forloop.counter0 }}">Positive</label>
+                                        <label class="btn btn-outline-primary" for="init_btnradio1_{{ forloop.counter0 }}">Positive</label>
 
                                         {% if label == 1 %}
                                         <input type="radio" class="btn-check" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio2_{{ forloop.counter0 }}" autocomplete="off" disabled>
                                         {% else %}
                                         <input type="radio" class="btn-check" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio2_{{ forloop.counter0 }}" autocomplete="off" checked>
                                         {% endif %}
-                                        <label class="btn btn-outline-primary" style="--bs-btn-padding-y: .2rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .7rem;" for="init_btnradio2_{{ forloop.counter0 }}">Negative</label>
+                                        <label class="btn btn-outline-primary" for="init_btnradio2_{{ forloop.counter0 }}">Negative</label>
+                                    {% else %}
+                                        {% if label == 1 %}
+                                        <input type="radio" class="btn-check" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio1_{{ forloop.counter0 }}" autocomplete="off" checked>
+                                        {% else %}
+                                        <input type="radio" class="btn-check" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio1_{{ forloop.counter0 }}" autocomplete="off" disabled>
+                                        {% endif %}
+                                        <label class="btn btn-outline-primary" for="init_btnradio1_{{ forloop.counter0 }}">Positive</label>
+
+                                        {% if label == 1 %}
+                                        <input type="radio" class="btn-check" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio2_{{ forloop.counter0 }}" autocomplete="off" disabled>
+                                        {% else %}
+                                        <input type="radio" class="btn-check" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio2_{{ forloop.counter0 }}" autocomplete="off" checked>
+                                        {% endif %}
+                                        <label class="btn btn-outline-primary" for="init_btnradio2_{{ forloop.counter0 }}">Negative</label>
                                     {% endif %}
                                   </div>
                             </div>
@@ -132,12 +198,12 @@
                                 <button type="button" class="btn btn-outline-primary" onclick="showMoreSegments()">Show
                                     me
                                     more</button>
-                                {% if query_idx == 3 %}
-                                <button type="button" class="btn btn-outline-primary"
+                                {% if query_idx >= 3 %}
+                                <button type="button" class="btn btn-outline-primary spinnable"
                                     onclick="iterativeSynthesis('live')">Ready to
                                     go!</button>
                                 {% else %}
-                                <button type="button" class="btn btn-outline-primary"
+                                <button type="button" class="btn btn-outline-primary spinnable"
                                     onclick="iterativeSynthesis('init')">Ready to
                                     go!</button>
                                 {% endif %}
@@ -147,7 +213,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-5 mh-100">
+            <div class="col-5 mh-100" hidden>
                 <div class="border h-100 p-2 overflow-scroll">
                     <div id = "prediction-container" class="p-3">
                         <h3 class="mb-3">Best Query on Test Data</h3>

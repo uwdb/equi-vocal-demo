@@ -53,19 +53,34 @@ if (configPopoverTrigger) {
 }
 
 
-const createSampleInput = (segment_src, segment_label, i, prefix, is_live) => {
-    console.log("is_live: ", is_live)
-    if (is_live) {
+const createSampleInput = (segment_src, segment_label, i, prefix, task_name) => {
+    if (task_name == "live") {
         return $(`
             <div class="card m-1">
                 <video width="180" controls autoplay loop muted class="p-2">
                     <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
                 </video>
-                <div class="card-body btn-group btn-group-sm" role="group" aria-label="Binary label of the video segment">
+                <div class="card-body btn-group btn-group-sm p-2" role="group" aria-label="Binary label of the video segment">
                     <input type="radio" class="btn-check to_submit" name="${prefix}_btnradio_${i}" id="${prefix}_btnradio1_${i}" autocomplete="off" checked>
                     <label class="btn btn-outline-primary" for="${prefix}_btnradio1_${i}">Positive</label>
 
                     <input type="radio" class="btn-check" name="${prefix}_btnradio_${i}" id="${prefix}_btnradio2_${i}" autocomplete="off">
+                    <label class="btn btn-outline-primary" for="${prefix}_btnradio2_${i}">Negative</label>
+                </div>
+            </div>
+        `);
+    }
+    else if (task_name == "user_study") {
+        return $(`
+            <div class="card m-1">
+                <video width="180" controls autoplay loop muted class="p-2">
+                    <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
+                </video>
+                <div class="card-body btn-group btn-group-sm p-2" role="group" aria-label="Binary label of the video segment">
+                    <input type="radio" class="btn-check to_submit" name="${prefix}_btnradio_${i}" id="${prefix}_btnradio1_${i}" autocomplete="off" ${segment_label == 1 ? 'checked' : 'disabled'}>
+                    <label class="btn btn-outline-primary" for="${prefix}_btnradio1_${i}">Positive</label>
+
+                    <input type="radio" class="btn-check" name="${prefix}_btnradio_${i}" id="${prefix}_btnradio2_${i}" autocomplete="off" ${segment_label == 1 ? 'disabled' : 'checked'}>
                     <label class="btn btn-outline-primary" for="${prefix}_btnradio2_${i}">Negative</label>
                 </div>
             </div>
@@ -77,7 +92,7 @@ const createSampleInput = (segment_src, segment_label, i, prefix, is_live) => {
                 <video width="180" controls autoplay loop muted class="p-2">
                     <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
                 </video>
-                <div class="card-body btn-group btn-group-sm" role="group" aria-label="Binary label of the video segment">
+                <div class="card-body btn-group btn-group-sm p-2" role="group" aria-label="Binary label of the video segment">
                     <input type="radio" class="btn-check" name="${prefix}_btnradio_${i}" id="${prefix}_btnradio1_${i}" autocomplete="off" ${segment_label == 1 ? 'checked' : 'disabled'}>
                     <label class="btn btn-outline-primary" for="${prefix}_btnradio1_${i}">Positive</label>
 
@@ -151,9 +166,21 @@ async function showMoreSegments() {
     }
 }
 
+// First thing: remove/disable the button, and show a spinner
+$(document).ready(function () {
+    disabledSpinnerButton();
+});
+
+function disabledSpinnerButton() {
+    $("button.spinnable").click(function () {
+        // disable button
+        $(this).prop("disabled", true);
+        // add spinner to button
+        $(this).html('<span class="spinner-border spinner-border-sm mr-05" role="status" aria-hidden="true"></span> Loading');
+    });
+}
+
 async function iterativeSynthesis(flag) {
-    $(this).attr("disabled", true);
-    // First thing: remove/disable the button, and show a spinner
     var response;
     if (flag == 'live') {
         // Get the user labels
@@ -168,6 +195,8 @@ async function iterativeSynthesis(flag) {
                 user_labels.push(0);
             }
             elementArray[i].classList.replace("to_submit", "submitted")
+            // elementArray[i].disabled = true;
+            // TODO: disable previous buttons for labels by making them unclickable
         }
         console.log(user_labels);
         // TODO: disable previous toggle buttons
@@ -210,14 +239,14 @@ async function iterativeSynthesis(flag) {
         var iteration = data.iteration;
         var sample_idx = data.sample_idx;
         var gallery = $("<div></div>").addClass("d-flex flex-wrap border border-1 border-secondary");
-        gallery.append(createSampleInput(segments[0], 0, sample_idx, iteration, flag == 'live')); // 0 is a dummy label
+        gallery.append(createSampleInput(segments[0], 0, sample_idx, iteration, flag)); // 0 is a dummy label
         main_container.append(gallery);
         // Update button
         var button_div = $("<div></div>")
             .addClass("d-flex justify-content-center pt-5 pb-5")
             .attr('id', 'btn');
         var button = $("<button></button>")
-        .addClass("btn btn-outline-primary")
+        .addClass("btn btn-outline-primary spinnable")
         .attr('onclick', "iterativeSynthesis('live')")
         .attr('type', 'button')
         .text("Confirm labels");
@@ -348,7 +377,7 @@ async function iterativeSynthesis(flag) {
         // Update gallery
         var gallery = $("<div></div>").addClass("d-flex flex-wrap border border-1 border-secondary");
         for (var i = 0; i < segments.length; i++) {
-            gallery.append(createSampleInput(segments[i], selected_gt_labels[i], i, iteration, flag == 'live'));
+            gallery.append(createSampleInput(segments[i], selected_gt_labels[i], i, iteration, flag));
         }
         main_container.append(gallery);
         // Update button
@@ -357,19 +386,42 @@ async function iterativeSynthesis(flag) {
             .attr('id', 'btn');
         if (flag == 'live') {
             var button = $("<button></button>")
-                .addClass("btn btn-outline-primary")
+                .addClass("btn btn-outline-primary spinnable")
                 .attr('onclick', "iterativeSynthesis('live')")
                 .attr('type', 'button')
                 .text("Confirm labels");
         }
         else {
             var button = $("<button></button>")
-                .addClass("btn btn-outline-primary")
+                .addClass("btn btn-outline-primary spinnable")
                 .attr('onclick', "iterativeSynthesis()")
                 .attr('type', 'button')
                 .text("Confirm labels");
         }
         button_div.append(button);
         main_container.append(button_div);
+        disabledSpinnerButton();
+    }
+}
+
+async function setRun() {
+    var run_id = $("#run_id").val();
+    const settings = {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            run_id: run_id
+        })
+    };
+    response = await fetch("set_run/", settings);
+    var data = await response.json();
+    var segments = data.video_paths;
+    var labels = data.labels;
+    $("#gallery").empty();
+    for (var i = 0; i < segments.length; i++) {
+        $("#gallery").append(createSampleInput(segments[i], labels[i], i, "init", 'user_study'));
     }
 }

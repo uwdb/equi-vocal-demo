@@ -15,14 +15,14 @@ in equi_app/views.py
 	line 11: change filepath in sys.path.append() to path to EQUI-VOCAL directory
 
 	line 12: comment out
-	
-	line 67: change input_dir value to path to EQUI-VOCAL/inputs folder 
+
+	line 67: change input_dir value to path to EQUI-VOCAL/inputs folder
 
 
-# Start the server
+# Start and stop the server
 brew services restart postgresql@14
 pg_ctl -D /usr/local/var/postgresql@14 restart
-
+brew services stop postgresql@14
 # Connect to server
 The name of the database is `equi_app`
 

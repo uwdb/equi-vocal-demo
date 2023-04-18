@@ -26,7 +26,8 @@ SECRET_KEY = 'django-insecure-c!l@oy1%e&bdvn=^*5^(w^(9w&51)wo&j*cpk5v+e4j%e1%1tq
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -76,16 +77,24 @@ WSGI_APPLICATION = 'equi_site.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'equi_app',
+#         'USER': 'zhangenhao',
+#         'HOST': '127.0.0.1',
+#         'PORT': '5432',
+#     }
+# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'equi_app',
-        'USER': 'zhangenhao',
+        'NAME': 'myinner_db',
+        'USER': 'enhaoz',
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators

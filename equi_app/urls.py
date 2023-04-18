@@ -15,6 +15,7 @@ urlpatterns = [
     path('iterative_synthesis/', views.iterative_synthesis.as_view()),
     path('iterative_synthesis_init/', views.iterative_synthesis_init.as_view()),
     path('iterative_synthesis_live/', views.iterative_synthesis_live.as_view()),
+    path('set_run/', views.set_run.as_view()),
     path('api/', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
