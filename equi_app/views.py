@@ -206,8 +206,9 @@ class iterative_synthesis_live(APIView):
             request.session["test_video_paths"] = test_video_paths
             request.session["test_labels"] = test_labels.tolist()
             print("test_labels", test_labels)
-
-            algorithm = test_algorithm_interactive(init_labeled_index=init_labeled_index, method="vocal_postgres", dataset_name=dataset_name, n_init_pos=10, n_init_neg=10, npred=7, depth=3, max_duration=15, beam_width=7, pool_size=50, n_sampled_videos=100, k=100, budget=50, multithread=4, query_str=query_str, predicate_dict=predicate_dict, lru_capacity=None, reg_lambda=0.001, strategy='topk', max_vars=3, port=5432, input_dir=input_dir)
+            n_init = len(init_labeled_index) // 2
+            print("n_init_pos: ", n_init)
+            algorithm = test_algorithm_interactive(init_labeled_index=init_labeled_index, method="vocal_postgres", dataset_name=dataset_name, n_init_pos=n_init, n_init_neg=n_init, npred=7, depth=3, max_duration=75, beam_width=5, pool_size=25, n_sampled_videos=100, k=100, budget=50, multithread=150, query_str=query_str, predicate_dict=predicate_dict, lru_capacity=None, reg_lambda=0.001, strategy='topk', max_vars=3, port=5432, input_dir=input_dir)
             # user_to_obj[request.session.session_key] = algorithm
             log_dict = algorithm.interactive_live()
         else:
