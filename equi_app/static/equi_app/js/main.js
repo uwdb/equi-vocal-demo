@@ -252,6 +252,7 @@ async function iterativeSynthesis(flag) {
         .text("Confirm labels");
         button_div.append(button);
         main_container.append(button_div);
+        disabledSpinnerButton();
     }
     else {
         $("#btn").remove();
