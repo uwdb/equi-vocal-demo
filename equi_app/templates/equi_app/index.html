@@ -105,7 +105,7 @@
             </div>
         </div>
     </nav>
-    <div class="container pt-5 h-100">
+    <div class="container pt-5 h-90">
         <span class="lead">Target Query: {{ query_text }} </span>
         <button id='image-graph-popover' type="button" class="btn btn-primary btn-sm ms-2" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-custom-class="custom-popover" data-bs-title="Scene graph visualization" data-bs-content='<div id="image-graph" class="row"></div>' data-bs-html="true">
             Scene Graph
@@ -140,17 +140,17 @@
             </div>
         </div>
 
-        <div class="row h-85 pt-5">
+        <div class="row pt-5" style="height: 80vh;">
             <div class="col-12 mh-100">  <!-- For user study -->
             <!-- <div class="col-7 mh-100">  For demo -->
-                <div class="border h-100 p-2 overflow-scroll">
+                <div class="border h-100 p-2 overflow-auto">
                     <div id="main-container" class="m-3">
                         <h3 class="mb-3">Search on Training Data</h3>
                         <h5>Initialization</h5>
-                        <div id="gallery" class="d-flex flex-wrap border border-1 border-secondary">
+                        <div id="gallery" class="d-flex flex-wrap border border-1 border-secondary overflow-auto" style="max-height: 58vh;">
                             {% for video_path, label in video_paths %}
                             <div class="card m-1">
-                                <video width="180" controls autoplay loop muted class="p-2">
+                                <video width="250" controls autoplay loop muted class="p-2">
                                     <source src="{% static video_path %}" type="video/mp4"> Your browser does not
                                     support the video tag.
                                 </video>
@@ -209,12 +209,11 @@
                                 {% endif %}
                             </div>
                         </div>
-                        <!-- <div id="prediction"></div> -->
                     </div>
                 </div>
             </div>
             <div class="col-5 mh-100" hidden>
-                <div class="border h-100 p-2 overflow-scroll">
+                <div class="border h-100 p-2 overflow-auto">
                     <div id = "prediction-container" class="p-3">
                         <h3 class="mb-3">Best Query on Test Data</h3>
                     </div>

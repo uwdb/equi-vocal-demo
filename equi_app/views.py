@@ -42,6 +42,7 @@ def append_record(record):
 
 class index(APIView):
     def get(self, request, query_idx=0, format=None):
+        request.session["init"] = True # To make sure the session is initialized
         request.session.clear()
         if request.session.session_key in user_to_obj:
             del user_to_obj[request.session.session_key]
@@ -326,6 +327,7 @@ def post_processing(log, test_video_paths, test_labels):
     # FIXME: temporarily set the best query list to be a list of one element
     log_copy["best_query_list"] = [log_copy["best_query"]]
     log_copy["best_score_list"] = [log_copy["best_score"]]
+    log_copy["top_k_queries_with_scores"] = list(zip(log_copy["best_query_list"], log_copy["best_score_list"]))
     return log_copy
 
 class set_run(APIView):
