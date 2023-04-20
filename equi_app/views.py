@@ -229,6 +229,7 @@ class iterative_synthesis_live(APIView):
                 "run_id": request.session["run_id"],
                 "action": "terminated",
                 "iteration": log_dict["iteration"],
+                "user_labels": user_labels,
             }
             append_record(log_record)
             request.session.clear()
