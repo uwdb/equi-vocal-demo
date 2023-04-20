@@ -230,6 +230,11 @@ class iterative_synthesis_live(APIView):
                 "action": "terminated",
                 "iteration": log_dict["iteration"],
                 "user_labels": user_labels,
+                "current_npos": log_dict["current_npos"],
+                "current_nneg": log_dict["current_nneg"],
+                "best_query_list": log_dict["best_query_list"],
+                "best_score_list": log_dict["best_score_list"],
+                "top_k_queries_with_scores": log_dict["top_k_queries_with_scores"],
             }
             append_record(log_record)
             request.session.clear()
