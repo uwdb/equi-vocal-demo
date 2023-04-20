@@ -262,6 +262,7 @@ class iterative_synthesis_live(APIView):
                 response["best_score"] = log_dict["best_score_list"][0]
                 response["best_query_list"] = log_dict["best_query_list"]
                 response["best_score_list"] = log_dict["best_score_list"]
+                response["top_k_queries_with_scores"] = log_dict["top_k_queries_with_scores"]
                 response["predicted_labels_test"] = log_dict["predicted_labels_test"]
                 log_record = {
                     "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -278,6 +279,7 @@ class iterative_synthesis_live(APIView):
                     "current_nneg": log_dict["current_nneg"],
                     "best_query_list": log_dict["best_query_list"],
                     "best_score_list": log_dict["best_score_list"],
+                    "top_k_queries_with_scores": log_dict["top_k_queries_with_scores"],
                     "predicted_labels_test": log_dict["predicted_labels_test"],
                 }
                 append_record(log_record)

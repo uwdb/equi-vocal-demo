@@ -155,11 +155,11 @@ const createStats = (num_pos, num_neg, num_false_pos, num_false_neg) => {
     `);
 }
 
-const createTopQueriesDropdown = (best_query_list, best_score_list) => {
+const createTopQueriesDropdown = (top_k_queries_with_scores) => {
     // For every best_query, best_score pair, create an option, and select the first one
     var options = ``;
-    for (var i = 0; i < best_query_list.length; i++) {
-        options += `<option value="${i}" ${i == 0 ? "selected": ""}>${best_query_list[i]} (${best_score_list[i].toFixed(3)})</option>`;
+    for (var i = 0; i < Math.min(top_k_queries_with_scores.length, 100); i++) {
+        options += `<option value="${i}" ${i == 0 ? "selected": ""}>${top_k_queries_with_scores[i][0]} (${top_k_queries_with_scores[i][1].toFixed(3)})</option>`;
     }
     return `
         ${options}
@@ -277,9 +277,10 @@ async function iterativeSynthesis(flag) {
             var best_score = data.best_score;
             var best_query_list = data.best_query_list;
             var best_score_list = data.best_score_list;
+            var top_k_queries_with_scores = data.top_k_queries_with_scores;
             console.log(best_query_list);
             // Update stats and top-k queries
-            var options = createTopQueriesDropdown(best_query_list, best_score_list);
+            var options = createTopQueriesDropdown(top_k_queries_with_scores);
             var stats = $("<div></div>").addClass("alert alert-info mt-3").html(`
                 <strong>Current iteration</strong>: ${iteration}
                 <br>
