@@ -155,6 +155,17 @@ const createStats = (num_pos, num_neg, num_false_pos, num_false_neg) => {
     `);
 }
 
+const createTopQueriesDropdown = (best_query_list, best_score_list) => {
+    // For every best_query, best_score pair, create an option, and select the first one
+    var options = ``;
+    for (var i = 0; i < best_query_list.length; i++) {
+        options += `<option value="${i}" ${i == 0 ? "selected": ""}>${best_query_list[i]} (${best_score_list[i].toFixed(3)})</option>`;
+    }
+    return `
+        ${options}
+    `;
+}
+
 async function showMoreSegments() {
     const response = await fetch("show_more_segments/");
     var data = await response.json();
@@ -264,7 +275,11 @@ async function iterativeSynthesis(flag) {
             var best_query = data.best_query;
             var best_query_scene_graph = data.best_query_scene_graph;
             var best_score = data.best_score;
+            var best_query_list = data.best_query_list;
+            var best_score_list = data.best_score_list;
+            console.log(best_query_list);
             // Update stats and top-k queries
+            var options = createTopQueriesDropdown(best_query_list, best_score_list);
             var stats = $("<div></div>").addClass("alert alert-info mt-3").html(`
                 <strong>Current iteration</strong>: ${iteration}
                 <br>
@@ -274,10 +289,7 @@ async function iterativeSynthesis(flag) {
                 <br>
                 <strong>Top-10 queries (with scores)</strong>:
                 <select class="form-select form-select-sm mt-2">
-                <option selected>${best_query} (${best_score.toFixed(3)})</option>
-                <option value="1">One</option>
-                <option value="2">Two</option>
-                <option value="3">Three</option>
+                ${options}
                 </select>
             `);
             main_container.append(stats);

@@ -164,6 +164,8 @@ class iterative_synthesis_live(APIView):
         log_record = {
             "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "session_id": request.session.session_key,
+            "query_idx": request.session['query_idx'],
+            "run_id": request.session["run_id"],
             "action": "start_iterative_synthesis_live",
         }
         append_record(log_record)
@@ -220,7 +222,6 @@ class iterative_synthesis_live(APIView):
 
         print("iteration done")
         if log_dict["state"] == "terminated":
-            request.session = {}
             log_record = {
                 "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "session_id": request.session.session_key,
@@ -230,6 +231,7 @@ class iterative_synthesis_live(APIView):
                 "iteration": log_dict["iteration"],
             }
             append_record(log_record)
+            request.session.clear()
             return JsonResponse({"state": "terminated"})
         else:
             response = {}
@@ -256,8 +258,10 @@ class iterative_synthesis_live(APIView):
             else:
                 response["current_npos"] = log_dict["current_npos"]
                 response["current_nneg"] = log_dict["current_nneg"]
-                response["best_query"] = log_dict["best_query"]
-                response["best_score"] = log_dict["best_score"]
+                response["best_query"] = log_dict["best_query_list"][0]
+                response["best_score"] = log_dict["best_score_list"][0]
+                response["best_query_list"] = log_dict["best_query_list"]
+                response["best_score_list"] = log_dict["best_score_list"]
                 response["predicted_labels_test"] = log_dict["predicted_labels_test"]
                 log_record = {
                     "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -272,8 +276,8 @@ class iterative_synthesis_live(APIView):
                     "sample_idx": log_dict["sample_idx"], # The index of the selected segment at the current iteration
                     "current_npos": log_dict["current_npos"],
                     "current_nneg": log_dict["current_nneg"],
-                    "best_query": log_dict["best_query"],
-                    "best_score": log_dict["best_score"],
+                    "best_query_list": log_dict["best_query_list"],
+                    "best_score_list": log_dict["best_score_list"],
                     "predicted_labels_test": log_dict["predicted_labels_test"],
                 }
                 append_record(log_record)
@@ -287,7 +291,7 @@ class iterative_synthesis(APIView):
         if request.session["iteration"] < len(log):
             return JsonResponse(post_processing(log[request.session["iteration"]], request.session["test_video_paths"], request.session["test_labels"]))
         else:
-            request.session = {}
+            request.session.clear()
             return JsonResponse({"state": "terminated"})
 
 def post_processing(log, test_video_paths, test_labels):
@@ -311,6 +315,9 @@ def post_processing(log, test_video_paths, test_labels):
     log_copy["predicted_neg_video_gt_labels"] = predicted_neg_video_gt_labels
 
     log_copy["best_query_scene_graph"] = str_to_program_postgres(log_copy["best_query"])
+    # FIXME: temporarily set the best query list to be a list of one element
+    log_copy["best_query_list"] = [log_copy["best_query"]]
+    log_copy["best_score_list"] = [log_copy["best_score"]]
     return log_copy
 
 class set_run(APIView):
