@@ -140,7 +140,7 @@
             </div>
         </div>
 
-        <div class="row pt-5" style="height: 80vh;">
+        <div class="row pt-5" style="height: 75vh;">
             <div class="col-12 mh-100">  <!-- For user study -->
             <!-- <div class="col-7 mh-100">  For demo -->
                 <div class="border h-100 p-2 overflow-auto">
@@ -150,7 +150,7 @@
                         <div id="gallery" class="d-flex flex-wrap border border-1 border-secondary overflow-auto" style="max-height: 58vh;">
                             {% for video_path, label in video_paths %}
                             <div class="card m-1">
-                                <video width="250" controls autoplay loop muted class="p-2">
+                                <video width="250" controls autoplay muted class="p-2">
                                     <source src="{% static video_path %}" type="video/mp4"> Your browser does not
                                     support the video tag.
                                 </video>

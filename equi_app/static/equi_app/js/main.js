@@ -57,7 +57,7 @@ const createSampleInput = (segment_src, segment_label, i, prefix, task_name) => 
     if (task_name == "live") {
         return $(`
             <div class="card m-1">
-                <video width="250" controls autoplay loop muted class="p-2">
+                <video width="250" controls autoplay muted class="p-2">
                     <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
                 </video>
                 <div class="card-body btn-group btn-group-sm p-2" role="group" aria-label="Binary label of the video segment">
@@ -73,7 +73,7 @@ const createSampleInput = (segment_src, segment_label, i, prefix, task_name) => 
     else if (task_name == "user_study") {
         return $(`
             <div class="card m-1">
-                <video width="250" controls autoplay loop muted class="p-2">
+                <video width="250" controls autoplay muted class="p-2">
                     <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
                 </video>
                 <div class="card-body btn-group btn-group-sm p-2" role="group" aria-label="Binary label of the video segment">
@@ -89,7 +89,7 @@ const createSampleInput = (segment_src, segment_label, i, prefix, task_name) => 
     else {
         return $(`
             <div class="card m-1">
-                <video width="250" controls autoplay loop muted class="p-2">
+                <video width="250" controls autoplay muted class="p-2">
                     <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
                 </video>
                 <div class="card-body btn-group btn-group-sm p-2" role="group" aria-label="Binary label of the video segment">
