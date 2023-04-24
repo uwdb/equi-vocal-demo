@@ -150,10 +150,11 @@
                         <div id="gallery" class="d-flex flex-wrap border border-1 border-secondary overflow-auto" style="max-height: 58vh;">
                             {% for video_path, label in video_paths %}
                             <div class="card m-1">
-                                <video width="250" controls autoplay muted class="p-2">
+                                <video width="250" controls autoplay muted class="p-2" ontimeupdate="updateTime(this)">
                                     <source src="{% static video_path %}" type="video/mp4"> Your browser does not
                                     support the video tag.
                                 </video>
+                                <div class="ps-2"></div>
                                 <div class="card-body btn-group btn-group-sm p-2" role="group" aria-label="Binary label of the video segment">
                                     {% if query_idx >= 3 %}
                                         <!-- <input type="radio" class="btn-check to_submit" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio1_{{ forloop.counter0 }}" autocomplete="off" checked>

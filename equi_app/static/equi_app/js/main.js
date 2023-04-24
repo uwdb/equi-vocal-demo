@@ -57,9 +57,10 @@ const createSampleInput = (segment_src, segment_label, i, prefix, task_name) => 
     if (task_name == "live") {
         return $(`
             <div class="card m-1">
-                <video width="250" controls autoplay muted class="p-2">
+                <video width="250" controls autoplay muted class="p-2" ontimeupdate="updateTime(this)">
                     <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
                 </video>
+                <div class="ps-2"></div>
                 <div class="card-body btn-group btn-group-sm p-2" role="group" aria-label="Binary label of the video segment">
                     <input type="radio" class="btn-check to_submit" name="${prefix}_btnradio_${i}" id="${prefix}_btnradio1_${i}" autocomplete="off" checked>
                     <label class="btn btn-outline-primary" for="${prefix}_btnradio1_${i}">Positive</label>
@@ -73,9 +74,10 @@ const createSampleInput = (segment_src, segment_label, i, prefix, task_name) => 
     else if (task_name == "user_study") {
         return $(`
             <div class="card m-1">
-                <video width="250" controls autoplay muted class="p-2">
+                <video width="250" controls autoplay muted class="p-2" ontimeupdate="updateTime(this)">
                     <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
                 </video>
+                <div class="ps-2"></div>
                 <div class="card-body btn-group btn-group-sm p-2" role="group" aria-label="Binary label of the video segment">
                     <input type="radio" class="btn-check to_submit" name="${prefix}_btnradio_${i}" id="${prefix}_btnradio1_${i}" autocomplete="off" ${segment_label == 1 ? 'checked' : 'disabled'}>
                     <label class="btn btn-outline-primary" for="${prefix}_btnradio1_${i}">Positive</label>
@@ -89,9 +91,10 @@ const createSampleInput = (segment_src, segment_label, i, prefix, task_name) => 
     else {
         return $(`
             <div class="card m-1">
-                <video width="250" controls autoplay muted class="p-2">
+                <video width="250" controls autoplay muted class="p-2" ontimeupdate="updateTime(this)">
                     <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
                 </video>
+                <div class="ps-2"></div>
                 <div class="card-body btn-group btn-group-sm p-2" role="group" aria-label="Binary label of the video segment">
                     <input type="radio" class="btn-check" name="${prefix}_btnradio_${i}" id="${prefix}_btnradio1_${i}" autocomplete="off" ${segment_label == 1 ? 'checked' : 'disabled'}>
                     <label class="btn btn-outline-primary" for="${prefix}_btnradio1_${i}">Positive</label>
@@ -107,9 +110,10 @@ const createSampleInput = (segment_src, segment_label, i, prefix, task_name) => 
 const createSampleOutput = (segment_src, segment_gt_label, i) => {
     return $(`
         <div class="card m-1 ${segment_gt_label}">
-            <video width="85" controls autoplay loop muted class="p-2">
+            <video width="85" controls autoplay loop muted class="p-2" ontimeupdate="updateTime(this)">
                 <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
             </video>
+            <div class="ps-2"></div>
         </div>
     `);
 }
@@ -438,4 +442,8 @@ async function setRun() {
     for (var i = 0; i < segments.length; i++) {
         $("#gallery").append(createSampleInput(segments[i], labels[i], i, "init", 'user_study'));
     }
+}
+
+function updateTime(video) {
+    video.nextElementSibling.innerHTML = "Timestamp: " + video.currentTime.toFixed(3) + " seconds";
 }
