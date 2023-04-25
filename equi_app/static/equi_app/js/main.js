@@ -299,87 +299,89 @@ async function iterativeSynthesis(flag) {
             `);
             main_container.append(stats);
 
-            // Update prediction
-            $('.popover').remove();
-            var prediction_container = $("#prediction-container").empty();
-            var heading = $("<h3></h3>").addClass("mb-3").text("Best Query on Test Data")
-            prediction_container.append(heading);
+            if (flag !== 'live') {
+                // Update prediction
+                $('.popover').remove();
+                var prediction_container = $("#prediction-container").empty();
+                var heading = $("<h3></h3>").addClass("mb-3").text("Best Query on Test Data")
+                prediction_container.append(heading);
 
-            // Best query details
-            var best_query_heading = $("<span></span>").addClass("lead fs-6").text("Best query: " + best_query);
-            prediction_container.append(best_query_heading);
+                // Best query details
+                var best_query_heading = $("<span></span>").addClass("lead fs-6").text("Best query: " + best_query);
+                prediction_container.append(best_query_heading);
 
-            // Best query scene graph
-            prediction_container.append(createSceneGraph());
-            prediction_container.append(createDatalog(best_query));
-            const bestSceneGeraphPopoverTrigger = document.getElementById('best-query-graph-popover');
-            const bestDatalogPopoverTrigger = document.getElementById('best-query-datalog-popover');
-            new bootstrap.Popover(bestSceneGeraphPopoverTrigger);
-            new bootstrap.Popover(bestDatalogPopoverTrigger);
-            bestSceneGeraphPopoverTrigger.addEventListener('inserted.bs.popover', () => {
-                $('#best-query-graph').empty();
-                renderSceneGraph('#best-query-graph', best_query_scene_graph);
-            })
+                // Best query scene graph
+                prediction_container.append(createSceneGraph());
+                prediction_container.append(createDatalog(best_query));
+                const bestSceneGeraphPopoverTrigger = document.getElementById('best-query-graph-popover');
+                const bestDatalogPopoverTrigger = document.getElementById('best-query-datalog-popover');
+                new bootstrap.Popover(bestSceneGeraphPopoverTrigger);
+                new bootstrap.Popover(bestDatalogPopoverTrigger);
+                bestSceneGeraphPopoverTrigger.addEventListener('inserted.bs.popover', () => {
+                    $('#best-query-graph').empty();
+                    renderSceneGraph('#best-query-graph', best_query_scene_graph);
+                })
 
-            var predicted_pos_segments = data.predicted_pos_video_paths;
-            var predicted_neg_segments = data.predicted_neg_video_paths;
-            var predicted_pos_gt_labels = data.predicted_pos_video_gt_labels;
-            var predicted_neg_gt_labels = data.predicted_neg_video_gt_labels;
+                var predicted_pos_segments = data.predicted_pos_video_paths;
+                var predicted_neg_segments = data.predicted_neg_video_paths;
+                var predicted_pos_gt_labels = data.predicted_pos_video_gt_labels;
+                var predicted_neg_gt_labels = data.predicted_neg_video_gt_labels;
 
-            var num_pred_pos = predicted_pos_segments.length;
-            var num_pred_neg = predicted_neg_segments.length;
+                var num_pred_pos = predicted_pos_segments.length;
+                var num_pred_neg = predicted_neg_segments.length;
 
-            //Counting true positives
-            var num_false_pos = 0;
-            for(var i = 0; i < predicted_pos_gt_labels.length; i++){
-                if(predicted_pos_gt_labels[i] ==0){
-                    num_false_pos += 1;
+                //Counting true positives
+                var num_false_pos = 0;
+                for(var i = 0; i < predicted_pos_gt_labels.length; i++){
+                    if(predicted_pos_gt_labels[i] ==0){
+                        num_false_pos += 1;
+                    }
                 }
+                var num_false_neg = 0;
+                for(var i = 0; i < predicted_neg_gt_labels.length; i++){
+                    if(predicted_neg_gt_labels[i] ==1){
+                        num_false_neg += 1;
+                    }
+                }
+
+                // Stats
+                prediction_container.append(createStats(num_pred_pos, num_pred_neg, num_false_pos, num_false_neg));
+
+                //Positive Gallery
+                var pos_predictions = $("<div></div>").addClass("d-flex justify-content-evenly flex-wrap border border-1 border-secondary mb-3"); //document.getElementById("pos-gallery");
+                var pos_heading = $("<h6>Positive</h6>").addClass("p-2 w-100");
+                var breakdiv = $("<div></div>").addClass("w-36");
+                pos_predictions.append(pos_heading);
+                pos_predictions.append(breakdiv);
+
+                for (var i = 0; i < predicted_pos_segments.length; i++) {
+                    if(predicted_pos_gt_labels[i]==1){
+                        bkgrnd_class = "bg-success";
+                    }
+                    else{
+                        bkgrnd_class = "bg-danger";
+                    }
+
+                    pos_predictions.append(createSampleOutput(predicted_pos_segments[i], bkgrnd_class, i));
+                }
+                prediction_container.append(pos_predictions);
+
+                //Negative gallery
+                var neg_predictions = $("<div></div>").addClass("d-flex justify-content-evenly flex-wrap border border-1 border-secondary"); //document.getElementById("neg-gallery");
+                var neg_heading = $("<h6>Negative</h6>").addClass("p-2 w-100")
+                neg_predictions.append(neg_heading)
+                neg_predictions.append(breakdiv)
+                for (var i = 0; i < predicted_neg_segments.length; i++) {
+                    if(predicted_neg_gt_labels[i]==0){
+                        bkgrnd_class = "bg-success";
+                    }
+                    else{
+                        bkgrnd_class = "bg-danger";
+                    }
+                    neg_predictions.append(createSampleOutput(predicted_neg_segments[i], bkgrnd_class, i));
+                }
+                prediction_container.append(neg_predictions);
             }
-            var num_false_neg = 0;
-            for(var i = 0; i < predicted_neg_gt_labels.length; i++){
-                if(predicted_neg_gt_labels[i] ==1){
-                    num_false_neg += 1;
-                }
-            }
-
-            // Stats
-            prediction_container.append(createStats(num_pred_pos, num_pred_neg, num_false_pos, num_false_neg));
-
-            //Positive Gallery
-            var pos_predictions = $("<div></div>").addClass("d-flex justify-content-evenly flex-wrap border border-1 border-secondary mb-3"); //document.getElementById("pos-gallery");
-            var pos_heading = $("<h6>Positive</h6>").addClass("p-2 w-100");
-            var breakdiv = $("<div></div>").addClass("w-36");
-            pos_predictions.append(pos_heading);
-            pos_predictions.append(breakdiv);
-
-            for (var i = 0; i < predicted_pos_segments.length; i++) {
-                if(predicted_pos_gt_labels[i]==1){
-                    bkgrnd_class = "bg-success";
-                }
-                else{
-                    bkgrnd_class = "bg-danger";
-                }
-
-                pos_predictions.append(createSampleOutput(predicted_pos_segments[i], bkgrnd_class, i));
-            }
-            prediction_container.append(pos_predictions);
-
-            //Negative gallery
-            var neg_predictions = $("<div></div>").addClass("d-flex justify-content-evenly flex-wrap border border-1 border-secondary"); //document.getElementById("neg-gallery");
-            var neg_heading = $("<h6>Negative</h6>").addClass("p-2 w-100")
-            neg_predictions.append(neg_heading)
-            neg_predictions.append(breakdiv)
-            for (var i = 0; i < predicted_neg_segments.length; i++) {
-                if(predicted_neg_gt_labels[i]==0){
-                    bkgrnd_class = "bg-success";
-                }
-                else{
-                    bkgrnd_class = "bg-danger";
-                }
-                neg_predictions.append(createSampleOutput(predicted_neg_segments[i], bkgrnd_class, i));
-            }
-            prediction_container.append(neg_predictions);
         }
         var selected_gt_labels;
         if (flag == 'live') {
