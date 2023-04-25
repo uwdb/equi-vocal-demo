@@ -327,7 +327,7 @@ def post_processing(log, test_video_paths, test_labels):
     # FIXME: temporarily set the best query list to be a list of one element
     log_copy["best_query_list"] = [log_copy["best_query"]]
     log_copy["best_score_list"] = [log_copy["best_score"]]
-    log_copy["top_k_queries_with_scores"] = list(zip(log_copy["best_query_list"], log_copy["best_score_list"]))
+    # log_copy["top_k_queries_with_scores"] = list(zip(log_copy["best_query_list"], log_copy["best_score_list"]))
     return log_copy
 
 class set_run(APIView):
