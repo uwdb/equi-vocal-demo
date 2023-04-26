@@ -247,7 +247,6 @@ class iterative_synthesis_live(APIView):
             response["top_k_queries_with_scores"] = log_dict["top_k_queries_with_scores"]
             response["predicted_labels_test"] = log_dict["predicted_labels_test"]
             append_record(log_record)
-            request.session.clear()
             return JsonResponse(post_processing(response, request.session["test_video_paths"], request.session["test_labels"]))
         else:
             response = {}
