@@ -60,9 +60,9 @@
                     </li>
                     <li class="nav-item">
                         {% if query_idx == 3 %}
-                        <a class="nav-link active" href="3">Live Query</a>
+                        <a class="nav-link active" href="3" >Live Query</a> <!-- onclick="iterativeSynthesis('live')" -->
                         {% else %}
-                        <a class="nav-link" href="3">Live Query</a>
+                        <a class="nav-link" href="3" >Live Query</a> <!-- onclick="iterativeSynthesis('live')" -->
                         {% endif %}
                     </li>
                 </ul>
@@ -91,22 +91,62 @@
         <div class="row h-75 pt-5">
             <div class="col-7 mh-100">
                 <div class="border h-100 p-2 overflow-scroll">
-                    <div id="main-container" class="m-3">
+                    <div id="main-container" class="m-3 h-100">
                         <h3 class="mb-3">Search on Training Data</h3>
                         <h5>Initialization</h5>
-                        <div id="gallery" class="d-flex flex-wrap border border-1 border-secondary">
-                            {% for video_path, label in video_paths %}
-                            <div class="card m-1">
+                        {% if query_idx == 3 %}
+                            <!-- color, shape, + material dropdowns-->
+                            <div class = "d-flex flex-row align-items-center" id="filterContainer">
+                                <button class="btn" type="button"> + </button>
+                                <div class = "mr-4"> Object 1 </div>
+                                <div class = "dropdown show py-2 mx-2">
+                                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButtonColor" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        Color
+                                    </button>
+                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButtonColor">
+                                        <a class="dropdown-item filter-button" data-filter="all" onclick="resetFilter(0)">all</a>
+                                        {% for opt in udfs_color_options %}
+                                        <a class="dropdown-item filter-button" data-filter="{{opt.0}}" onclick="showSelectedFilter(this, 0)">{{opt.0}}</a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class = "dropdown show py-2 mx-2">
+                                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButtonShape" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        Shape
+                                    </button>
+                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButtonShape">
+                                        <a class="dropdown-item filter-button" data-filter="all" onclick="resetFilter(1)">all</a>
+                                        {% for opt in udfs_shape_options %}
+                                        <a class="dropdown-item filter-button" data-filter="{{opt.0}}" onclick="showSelectedFilter(this, 1)">{{opt.0}}</a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class = "dropdown show py-2 mx-2">
+                                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButtonMaterial" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        Material
+                                    </button>
+                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButtonMaterial">
+                                        <a class="dropdown-item filter-button" data-filter="all" onclick="resetFilter(2)">all</a>
+                                        {% for opt in udfs_material_options %}
+                                        <a class="dropdown-item filter-button" data-filter="{{opt.0}}" onclick="showSelectedFilter(this, 2)">{{opt.0}}</a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        <div id="gallery" class="d-flex flex-wrap border border-1 border-secondary overflow-scroll h-100">
+                            {% for video_path, label, filterstr in video_paths %} 
+                            <div class="card m-1 filter {{filterstr}}"> 
                                 <video width="150" controls autoplay loop muted class="p-2">
                                     <source src="{% static video_path %}" type="video/mp4"> Your browser does not
                                     support the video tag.
                                 </video>
                                 <div class="card-body btn-group btn-group-sm p-2" role="group" aria-label="Binary label of the video segment">
                                     {% if query_idx == 3 %}
-                                        <input type="radio" class="btn-check to_submit" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio1_{{ forloop.counter0 }}" autocomplete="off" checked>
+                                        <input type="radio" class="btn-check" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio1_{{ forloop.counter0 }}" onclick = "userLabelToggle()" autocomplete="off">
                                         <label class="btn btn-outline-primary" style="--bs-btn-padding-y: .2rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .7rem;" for="init_btnradio1_{{ forloop.counter0 }}">Positive</label>
 
-                                        <input type="radio" class="btn-check" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio2_{{ forloop.counter0 }}" autocomplete="off">
+                                        <input type="radio" class="btn-check" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio2_{{ forloop.counter0 }}" autocomplete="off" onclick = "userLabelToggle()" >
                                         <label class="btn btn-outline-primary" style="--bs-btn-padding-y: .2rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .7rem;" for="init_btnradio2_{{ forloop.counter0 }}">Negative</label>
                                     {% else %}
                                         {% if label == 1 %}
@@ -127,6 +167,7 @@
                             </div>
                             {% endfor %}
                         </div>
+                        
                         <div class="d-flex justify-content-center pt-3">
                             <div id="btn" class="btn-group">
                                 <button type="button" class="btn btn-outline-primary" onclick="showMoreSegments()">Show

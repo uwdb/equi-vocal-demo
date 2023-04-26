@@ -9,7 +9,8 @@ import os, json
 import numpy as np
 import pickle
 import sys
-sys.path.append("/Users/zhangenhao/Desktop/UW/Research/equi-vocal-demo/EQUI-VOCAL")
+import psycopg2 as psycopg
+sys.path.append("/Users/manasiganti/EQUI-VOCAL")
 from src.synthesize import test_algorithm_interactive
 from src.utils import str_to_program_postgres
 
@@ -26,8 +27,26 @@ class index(APIView):
             del user_to_obj[request.session.session_key]
         request.session['query_idx'] = query_idx
         example_query = example_queries[query_idx]
-        vids = example_query["vids"]
-        labels = example_query["labels"]
+
+        if(query_idx==3):
+            input_dir = "/Users/manasiganti/EQUI-VOCAL/inputs"
+            dataset_name = "demo_queries_scene_graph"
+            query_str = example_query["query_str"]
+            with open(os.path.join(input_dir, dataset_name, "train/{}_inputs.json".format(query_str)), 'r') as f:
+                vids = json.load(f)
+            with open(os.path.join(input_dir, dataset_name, "train/{}_labels.json".format(query_str)), 'r') as f:
+                labels = json.load(f)
+            vids = np.asarray(vids)
+            labels = np.asarray(labels)
+        else:
+            vids = example_query["vids"]
+            labels = example_query["labels"]
+        video_paths = video_paths = [static('equi_app/clevrer/video_{}-{}/video_{}.mp4'.format(str(vid//1000*1000).zfill(5), str((vid//1000+1)*1000).zfill(5), str(vid).zfill(5))) for vid in vids]            
+        filters = udf_labels(video_paths, [vid for vid in vids])
+        udf_opts = udf_options()
+
+
+        
         query_text = example_query["query_text"]
         query_scene_graph = str_to_program_postgres(example_query["query_str"])
         print(example_query["query_str"])
@@ -38,7 +57,10 @@ class index(APIView):
         else:
             config = None
         context = {
-            'video_paths': [('equi_app/clevrer/video_{}-{}/video_{}.mp4'.format(str(vid//1000*1000).zfill(5), str((vid//1000+1)*1000).zfill(5), str(vid).zfill(5)), label) for vid, label in zip(vids, labels)],
+            'video_paths': [('equi_app/clevrer/video_{}-{}/video_{}.mp4'.format(str(vid//1000*1000).zfill(5), str((vid//1000+1)*1000).zfill(5), str(vid).zfill(5)), label, filterstr) for vid, label, filterstr in zip(vids, labels, filters)][0:10],
+            'udfs_color_options': udf_opts[0],
+            'udfs_shape_options': udf_opts[1],
+            'udfs_material_options': udf_opts[2],
             'query_idx': query_idx,
             'query_text': query_text,
             'query_datalog': query_datalog,
@@ -66,17 +88,18 @@ class iterative_synthesis_init(APIView):
 
         predicate_dict = [{"name": "Near", "parameters": [1], "nargs": 2}, {"name": "Far", "parameters": [3], "nargs": 2}, {"name": "LeftOf", "parameters": None, "nargs": 2}, {"name": "Behind", "parameters": None, "nargs": 2}, {"name": "RightOf", "parameters": None, "nargs": 2}, {"name": "FrontOf", "parameters": None, "nargs": 2}, {"name": "RightQuadrant", "parameters": None, "nargs": 1}, {"name": "LeftQuadrant", "parameters": None, "nargs": 1}, {"name": "TopQuadrant", "parameters": None, "nargs": 1}, {"name": "BottomQuadrant", "parameters": None, "nargs": 1}, {"name": "Color", "parameters": ["gray", "red", "blue", "green", "brown", "cyan", "purple", "yellow"], "nargs": 1}, {"name": "Shape", "parameters": ["cube", "sphere", "cylinder"], "nargs": 1}, {"name": "Material", "parameters": ["metal", "rubber"], "nargs": 1}]
 
-        input_dir = "/Users/zhangenhao/Desktop/UW/Research/equi-vocal-demo/EQUI-VOCAL/inputs"
+        input_dir = "/Users/manasiganti/EQUI-VOCAL/inputs"
         dataset_name = "demo_queries_scene_graph"
         query_str = example_query["query_str"]
         # query_str = 'Conjunction(Conjunction(Color_red(o0), Color_yellow(o1)), LeftOf(o0, o1)); RightOf(o0, o1)'
 
         with open(os.path.join(input_dir, dataset_name, "train/{}_inputs.json".format(query_str)), 'r') as f:
-            inputs = json.load(f)
+            inputs = json.load(f) #length 500
         with open(os.path.join(input_dir, dataset_name, "train/{}_labels.json".format(query_str)), 'r') as f:
             labels = json.load(f)
         inputs = np.asarray(inputs)
         labels = np.asarray(labels)
+        video_paths = [static('equi_app/clevrer/video_{}-{}/video_{}.mp4'.format(str(vid//1000*1000).zfill(5), str((vid//1000+1)*1000).zfill(5), str(vid).zfill(5))) for vid in inputs]
 
         # Test dataset for interactive demo
         with open(os.path.join(input_dir, dataset_name, "test/{}_inputs.json".format(query_str)), 'r') as f:
@@ -115,8 +138,6 @@ class iterative_synthesis_init(APIView):
         #         log.append(response)
         # print("init vids", init_vids)
         # print("log", log)
-
-
         log = example_query["log"]
 
         request.session["iteration"] = 0
@@ -136,7 +157,7 @@ class iterative_synthesis_live(APIView):
 
             predicate_dict = [{"name": "Near", "parameters": [1], "nargs": 2}, {"name": "Far", "parameters": [3], "nargs": 2}, {"name": "LeftOf", "parameters": None, "nargs": 2}, {"name": "Behind", "parameters": None, "nargs": 2}, {"name": "RightOf", "parameters": None, "nargs": 2}, {"name": "FrontOf", "parameters": None, "nargs": 2}, {"name": "RightQuadrant", "parameters": None, "nargs": 1}, {"name": "LeftQuadrant", "parameters": None, "nargs": 1}, {"name": "TopQuadrant", "parameters": None, "nargs": 1}, {"name": "BottomQuadrant", "parameters": None, "nargs": 1}, {"name": "Color", "parameters": ["gray", "red", "blue", "green", "brown", "cyan", "purple", "yellow"], "nargs": 1}, {"name": "Shape", "parameters": ["cube", "sphere", "cylinder"], "nargs": 1}, {"name": "Material", "parameters": ["metal", "rubber"], "nargs": 1}]
 
-            input_dir = "/Users/zhangenhao/Desktop/UW/Research/equi-vocal-demo/EQUI-VOCAL/inputs"
+            input_dir = "/Users/manasiganti/EQUI-VOCAL/inputs"
             dataset_name = "demo_queries_scene_graph"
             query_str = example_query["query_str"]
             # query_str = 'Conjunction(Conjunction(Color_red(o0), Color_yellow(o1)), LeftOf(o0, o1)); RightOf(o0, o1)'
@@ -149,6 +170,7 @@ class iterative_synthesis_live(APIView):
             labels = np.asarray(labels)
             video_paths = [static('equi_app/clevrer/video_{}-{}/video_{}.mp4'.format(str(vid//1000*1000).zfill(5), str((vid//1000+1)*1000).zfill(5), str(vid).zfill(5))) for vid in inputs]
             request.session["video_paths"] = video_paths
+
             # Test dataset for interactive demo
             with open(os.path.join(input_dir, dataset_name, "test/{}_inputs.json".format(query_str)), 'r') as f:
                 test_inputs = json.load(f)
@@ -166,6 +188,7 @@ class iterative_synthesis_live(APIView):
             # user_to_obj[request.session.session_key] = algorithm
             request.session["iteration"] = 0
             log_dict = algorithm.interactive_live()
+
         else:
             algorithm = user_to_obj[request.session.session_key]
             request.session["iteration"] += 1
@@ -183,7 +206,7 @@ class iterative_synthesis_live(APIView):
             selected_segments = log_dict["selected_segments"]
             response["iteration"] = log_dict["iteration"]
             response["sample_idx"] = log_dict["sample_idx"]
-            response["video_paths"] = [request.session["video_paths"][idx] for idx in selected_segments]
+            response["video_paths"] = request.session["video_paths"] #[request.session["video_paths"][idx] for idx in selected_segments]
             if log_dict["state"] == "label_more" or log_dict["iteration"] == 0:
                 return JsonResponse(response)
             else:
@@ -194,7 +217,6 @@ class iterative_synthesis_live(APIView):
                 response["predicted_labels_test"] = log_dict["predicted_labels_test"]
                 return JsonResponse(post_processing(response, request.session["test_video_paths"], request.session["test_labels"]))
 
-
 class iterative_synthesis(APIView):
     def get(self, request, format=None):
         request.session["iteration"] += 1
@@ -204,6 +226,60 @@ class iterative_synthesis(APIView):
         else:
             request.session = {}
             return JsonResponse({"state": "terminated"})
+
+def udf_labels(video_paths, video_ids):
+    #filter_labels_path = 
+
+    if(os.path.exists(os.path.join(module_dir,'filter_labels.json'))):
+        with open('equi_app/filter_labels.json', 'r') as f:
+            print("HI PRELOADED 1")
+            return json.load(f)
+    else:
+        dsn = "dbname=equi_app user=manasiganti host=localhost" #clean up later
+        with psycopg.connect(dsn) as conn:
+            with conn.cursor() as cur:
+                output_filters = []
+                for (path, vid) in zip(video_paths, video_ids):
+                    cur.execute("SELECT DISTINCT Color FROM Obj_clevrer WHERE vid={vid};".format(vid=vid)) #todo: no for loop
+                    vid_filters_color = cur.fetchall()
+                    cur.execute("SELECT DISTINCT Shape FROM Obj_clevrer WHERE vid={vid};".format(vid=vid))
+                    vid_filters_shape = cur.fetchall()
+                    cur.execute("SELECT DISTINCT Material FROM Obj_clevrer WHERE vid={vid};".format(vid=vid))
+                    vid_filters_material = cur.fetchall()
+                    # separate by space?
+                    filterstr = ""
+                    for fil in vid_filters_color:
+                        filterstr += fil[0] + " "                
+                    for fil in vid_filters_shape:
+                        filterstr += fil[0] + " "
+                    for fil in vid_filters_material:
+                        filterstr += fil[0] + " "
+                    output_filters.append(filterstr.rstrip())
+                    #print(filterstr)
+                with open('equi_app/filter_labels.json', 'w') as f:
+                  json.dump(output_filters, f, ensure_ascii=False)
+                return output_filters
+
+# user defined predicates to filter on and their values (options to filter by)
+def udf_options():
+    if(os.path.exists(os.path.join(module_dir,'filter_options.json'))):
+        with open('equi_app/filter_options.json', 'r') as f:
+            print("HI PRELOADED 2")
+            return json.load(f) 
+    else:
+        dsn = "dbname=equi_app user=manasiganti host=localhost" #clean up later
+        with psycopg.connect(dsn) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT DISTINCT Color FROM Obj_clevrer;") 
+                color_options = cur.fetchall()
+                cur.execute("SELECT DISTINCT Shape FROM Obj_clevrer;")
+                shape_options = cur.fetchall()
+                cur.execute("SELECT DISTINCT Material FROM Obj_clevrer;")
+                material_options = cur.fetchall()
+                output_options = [color_options, shape_options, material_options]
+                with open('equi_app/filter_options.json', 'w') as f:
+                  json.dump(output_options, f, ensure_ascii=False)
+                return output_options
 
 def post_processing(log, test_video_paths, test_labels):
     log_copy = dict(log)

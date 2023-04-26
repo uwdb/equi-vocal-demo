@@ -1,4 +1,29 @@
 // TODO: buttons in the main container should be fixed to the bottom of the page (not as part of the scrollable area)
+$(document).ready(function(){
+    $(".filter-button").click(function(){
+        var value = $(this).attr('data-filter');
+        
+        if(value == "all")
+        {
+            //$('.filter').removeClass('hidden');
+            $('.filter').show('1000');
+        }
+        else
+        {
+//            $('.filter[filter-item="'+value+'"]').removeClass('hidden');
+//            $(".filter").not('.filter[filter-item="'+value+'"]').addClass('hidden');
+            $(".filter").not('.'+value).hide('3000');
+            $('.filter').filter('.'+value).show('3000');
+            
+        }
+    });
+    
+    if ($(".filter-button").removeClass("active")) {
+        $(this).removeClass("active");
+        }
+    $(this).addClass("active");
+
+});
 
 const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
 const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
@@ -151,6 +176,49 @@ async function showMoreSegments() {
     }
 }
 
+// ROLY POLY
+// async function loadFilterLabels(){
+//     //console.log('ONCLICK CLICKED');
+//     response = await fetch("live_query_load/", settings); //fetch("iterative_synthesis_live/", settings);
+//     console.log("HELLO HELLO 1");
+//     var elementArray = document.getElementsByClassName("filter");
+//     for (var i = 0; i < elementArray.length; ++i) {
+//         elementArray[i].className = "card m-1 filter " + log["udf_filters"];
+//         console.log("HELLO HELLO 2");
+//     }
+// }
+
+function userLabelToggle(){
+    $(this).addClass("to_submit");
+    console.log("ADDED TO SUBMIT");
+}
+
+function resetFilter(opt){
+    if(opt==0){
+        document.getElementById("dropdownMenuButtonColor").innerHTML = "Color";
+    }
+    else if(opt==1){
+        document.getElementById("dropdownMenuButtonShape").innerHTML = "Shape";
+    }
+    else if(opt==2){
+        document.getElementById("dropdownMenuButtonMaterial").innerHTML = "Material";
+    }
+
+}
+function showSelectedFilter(item, opt) {
+    if(opt==0){
+        document.getElementById("dropdownMenuButtonColor").innerHTML = item.innerHTML;
+    }
+    else if(opt==1){
+        document.getElementById("dropdownMenuButtonShape").innerHTML = item.innerHTML;
+    }
+    else if(opt==2){
+        document.getElementById("dropdownMenuButtonMaterial").innerHTML = item.innerHTML;
+    }
+}
+
+
+
 async function iterativeSynthesis(flag) {
     $(this).attr("disabled", true);
     // First thing: remove/disable the button, and show a spinner
@@ -163,13 +231,16 @@ async function iterativeSynthesis(flag) {
         for (var i = 0; i < elementArray.length; ++i) {
             if (elementArray[i].checked) {
                 user_labels.push(1);
+                console.log("hi 1");
             }
             else {
                 user_labels.push(0);
+                console.log("hi 2");
             }
             elementArray[i].classList.replace("to_submit", "submitted")
         }
-        console.log(user_labels);
+        console.log("user_labels", user_labels);
+
         // TODO: disable previous toggle buttons
         const settings = {
             method: 'POST',
