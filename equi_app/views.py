@@ -238,6 +238,8 @@ class iterative_synthesis_live(APIView):
                 "top_k_queries_with_scores": log_dict["top_k_queries_with_scores"],
             }
             response = {}
+            response["state"] = log_dict["state"]
+            response["iteration"] = log_dict["iteration"]
             response["current_npos"] = log_dict["current_npos"]
             response["current_nneg"] = log_dict["current_nneg"]
             response["best_query"] = log_dict["best_query_list"][0]
