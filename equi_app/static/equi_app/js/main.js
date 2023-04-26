@@ -176,18 +176,6 @@ async function showMoreSegments() {
     }
 }
 
-// ROLY POLY
-// async function loadFilterLabels(){
-//     //console.log('ONCLICK CLICKED');
-//     response = await fetch("live_query_load/", settings); //fetch("iterative_synthesis_live/", settings);
-//     console.log("HELLO HELLO 1");
-//     var elementArray = document.getElementsByClassName("filter");
-//     for (var i = 0; i < elementArray.length; ++i) {
-//         elementArray[i].className = "card m-1 filter " + log["udf_filters"];
-//         console.log("HELLO HELLO 2");
-//     }
-// }
-
 function userLabelToggle(){
     $(this).addClass("to_submit");
     console.log("ADDED TO SUBMIT");

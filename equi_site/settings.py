@@ -80,7 +80,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'equi_app',
-        'USER': 'zhangenhao',
+        'USER': 'manasiganti',
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
