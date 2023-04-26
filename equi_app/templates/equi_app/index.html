@@ -150,7 +150,7 @@
                         <div id="gallery" class="d-flex flex-wrap border border-1 border-secondary overflow-auto" style="max-height: 58vh;">
                             {% for video_path, label in video_paths %}
                             <div class="card m-1">
-                                <video width="250" controls autoplay muted class="p-2" ontimeupdate="updateTime(this)">
+                                <video width="250" controls muted class="p-2" ontimeupdate="updateTime(this)">
                                     <source src="{% static video_path %}" type="video/mp4"> Your browser does not
                                     support the video tag.
                                 </video>

@@ -57,7 +57,7 @@ const createSampleInput = (segment_src, segment_label, i, prefix, task_name) => 
     if (task_name == "live") {
         return $(`
             <div class="card m-1">
-                <video width="250" controls autoplay muted class="p-2" ontimeupdate="updateTime(this)">
+                <video width="250" controls muted class="p-2" ontimeupdate="updateTime(this)">
                     <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
                 </video>
                 <div class="ps-2"></div>
@@ -74,7 +74,7 @@ const createSampleInput = (segment_src, segment_label, i, prefix, task_name) => 
     else if (task_name == "user_study") {
         return $(`
             <div class="card m-1">
-                <video width="250" controls autoplay muted class="p-2" ontimeupdate="updateTime(this)">
+                <video width="250" controls muted class="p-2" ontimeupdate="updateTime(this)">
                     <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
                 </video>
                 <div class="ps-2"></div>
@@ -91,7 +91,7 @@ const createSampleInput = (segment_src, segment_label, i, prefix, task_name) => 
     else {
         return $(`
             <div class="card m-1">
-                <video width="250" controls autoplay muted class="p-2" ontimeupdate="updateTime(this)">
+                <video width="250" controls muted class="p-2" ontimeupdate="updateTime(this)">
                     <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
                 </video>
                 <div class="ps-2"></div>
@@ -110,7 +110,7 @@ const createSampleInput = (segment_src, segment_label, i, prefix, task_name) => 
 const createSampleOutput = (segment_src, segment_gt_label, i) => {
     return $(`
         <div class="card m-1 ${segment_gt_label}">
-            <video width="85" controls autoplay loop muted class="p-2" ontimeupdate="updateTime(this)">
+            <video width="85" controls loop muted class="p-2" ontimeupdate="updateTime(this)">
                 <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
             </video>
             <div class="ps-2"></div>
@@ -235,6 +235,32 @@ async function iterativeSynthesis(flag) {
     var data = await response.json();
     var main_container = $("#main-container");
     if (data.state == "terminated") {
+        if (flag == 'live') {
+            var current_npos = data.current_npos;
+            var current_nneg = data.current_nneg;
+            var best_query = data.best_query;
+            var best_query_scene_graph = data.best_query_scene_graph;
+            var best_score = data.best_score;
+            var best_query_list = data.best_query_list;
+            var best_score_list = data.best_score_list;
+            var top_k_queries_with_scores = data.top_k_queries_with_scores;
+            console.log(best_query_list);
+            // Update stats and top-k queries
+            var options = createTopQueriesDropdown(top_k_queries_with_scores);
+            var stats = $("<div></div>").addClass("alert alert-info mt-3").html(`
+                <strong>Current iteration</strong>: ${iteration}
+                <br>
+                <strong>Current positive examples</strong>: ${current_npos}
+                <br>
+                <strong>Current negative examples</strong>: ${current_nneg}
+                <br>
+                <strong>Top-10 queries (with scores)</strong>:
+                <select class="form-select form-select-sm mt-2">
+                ${options}
+                </select>
+            `);
+            main_container.append(stats);
+        }
         // Update the gallery
         var heading = $("<h5></h5>").addClass("pt-5").text("Algorithm terminated.");
         main_container.append(heading);
@@ -281,7 +307,14 @@ async function iterativeSynthesis(flag) {
             var best_score = data.best_score;
             var best_query_list = data.best_query_list;
             var best_score_list = data.best_score_list;
-            var top_k_queries_with_scores = data.top_k_queries_with_scores;
+            var top_k_queries_with_scores;
+            if (flag == 'live') {
+                top_k_queries_with_scores = data.top_k_queries_with_scores;
+            }
+            else {
+                top_k_queries_with_scores = [[best_query, best_score]];
+            }
+
             console.log(best_query_list);
             // Update stats and top-k queries
             var options = createTopQueriesDropdown(top_k_queries_with_scores);

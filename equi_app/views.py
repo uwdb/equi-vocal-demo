@@ -228,7 +228,7 @@ class iterative_synthesis_live(APIView):
                 "session_id": request.session.session_key,
                 "query_idx": request.session['query_idx'],
                 "run_id": request.session["run_id"],
-                "action": "terminated",
+                "action": log_dict["state"],
                 "iteration": log_dict["iteration"],
                 "user_labels": user_labels,
                 "current_npos": log_dict["current_npos"],
@@ -237,9 +237,18 @@ class iterative_synthesis_live(APIView):
                 "best_score_list": log_dict["best_score_list"],
                 "top_k_queries_with_scores": log_dict["top_k_queries_with_scores"],
             }
+            response = {}
+            response["current_npos"] = log_dict["current_npos"]
+            response["current_nneg"] = log_dict["current_nneg"]
+            response["best_query"] = log_dict["best_query_list"][0]
+            response["best_score"] = log_dict["best_score_list"][0]
+            response["best_query_list"] = log_dict["best_query_list"]
+            response["best_score_list"] = log_dict["best_score_list"]
+            response["top_k_queries_with_scores"] = log_dict["top_k_queries_with_scores"]
+            response["predicted_labels_test"] = log_dict["predicted_labels_test"]
             append_record(log_record)
             request.session.clear()
-            return JsonResponse({"state": "terminated"})
+            return JsonResponse(post_processing(response, request.session["test_video_paths"], request.session["test_labels"]))
         else:
             response = {}
             response["state"] = log_dict["state"]
