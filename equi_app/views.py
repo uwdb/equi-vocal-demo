@@ -42,10 +42,13 @@ class index(APIView):
             vids = example_query["vids"]
             labels = example_query["labels"]
         video_paths = video_paths = [static('equi_app/clevrer/video_{}-{}/video_{}.mp4'.format(str(vid//1000*1000).zfill(5), str((vid//1000+1)*1000).zfill(5), str(vid).zfill(5))) for vid in vids]            
-        filters = udf_labels(video_paths, [vid for vid in vids])
+        filters = udf_labels(vids)
         udf_opts = udf_options()
-
-
+        pages_vids = np.array_split(np.array(vids),len(vids)/50 + 1)
+        print(len(pages_vids))
+        print(pages_vids)
+        pages_labels = np.array_split(np.array(labels),len(vids)/50 + 1)
+        pages_filters = np.array_split(np.array(filters),len(vids)/50 + 1)
         
         query_text = example_query["query_text"]
         query_scene_graph = str_to_program_postgres(example_query["query_str"])
@@ -56,8 +59,12 @@ class index(APIView):
             config = example_query["config"]
         else:
             config = None
+        
         context = {
-            'video_paths': [('equi_app/clevrer/video_{}-{}/video_{}.mp4'.format(str(vid//1000*1000).zfill(5), str((vid//1000+1)*1000).zfill(5), str(vid).zfill(5)), label, filterstr) for vid, label, filterstr in zip(vids, labels, filters)][0:10],
+            #fix if query idx != 3
+            'video_paths': [[[static('equi_app/clevrer/video_{}-{}/video_{}.mp4'.format(str(vid//1000*1000).zfill(5), str((vid//1000+1)*1000).zfill(5), str(vid).zfill(5))), label, filterstr] for vid, label, filterstr in zip(pages_vids[i], pages_labels[i], pages_filters[i])] for i in range(0, len(pages_vids))],
+            'page_num': 0,
+            'pages': range(0, len(pages_vids)),
             'udfs_color_options': udf_opts[0],
             'udfs_shape_options': udf_opts[1],
             'udfs_material_options': udf_opts[2],
@@ -149,6 +156,8 @@ class iterative_synthesis_init(APIView):
 class iterative_synthesis_live(APIView):
     def post(self, request, format=None):
         user_labels = request.data['user_labels']
+        submitted_indices = []
+        submitted_indices = request.data['submitted_indices']
         if request.session.session_key not in user_to_obj:
             # First time, initialize the algorithm
             print("query_idx:", request.session["query_idx"])
@@ -184,10 +193,11 @@ class iterative_synthesis_live(APIView):
             request.session["test_labels"] = test_labels.tolist()
             print("test_labels", test_labels)
 
-            algorithm = test_algorithm_interactive(method="vocal_postgres", dataset_name=dataset_name, n_init_pos=10, n_init_neg=10, npred=7, depth=3, max_duration=15, beam_width=10, pool_size=100, k=100, budget=50, multithread=8, query_str=query_str, predicate_dict=predicate_dict, lru_capacity=None, reg_lambda=0.001, strategy='topk', max_vars=3, port=5432, input_dir=input_dir)
+            #pass new list
+            algorithm = test_algorithm_interactive(method="vocal_postgres", dataset_name=dataset_name, n_init_pos=10, n_init_neg=10, submitted_indices=submitted_indices, npred=7, depth=3, max_duration=15, beam_width=10, pool_size=100, k=100, budget=50, multithread=8, query_str=query_str, predicate_dict=predicate_dict, lru_capacity=None, reg_lambda=0.001, strategy='topk', max_vars=3, port=5432, input_dir=input_dir) #test_algorithm_interactive(method="vocal_postgres", dataset_name=dataset_name, n_init_pos=10, n_init_neg=10, npred=7, depth=3, max_duration=15, beam_width=10, pool_size=100, k=100, budget=50, multithread=8, query_str=query_str, predicate_dict=predicate_dict, lru_capacity=None, reg_lambda=0.001, strategy='topk', max_vars=3, port=5432, input_dir=input_dir)
             # user_to_obj[request.session.session_key] = algorithm
             request.session["iteration"] = 0
-            log_dict = algorithm.interactive_live()
+            log_dict = algorithm.interactive_live(user_labels)#interactive_live()
 
         else:
             algorithm = user_to_obj[request.session.session_key]
@@ -206,8 +216,9 @@ class iterative_synthesis_live(APIView):
             selected_segments = log_dict["selected_segments"]
             response["iteration"] = log_dict["iteration"]
             response["sample_idx"] = log_dict["sample_idx"]
-            response["video_paths"] = request.session["video_paths"] #[request.session["video_paths"][idx] for idx in selected_segments]
+            response["video_paths"] = [request.session["video_paths"][idx] for idx in selected_segments]
             if log_dict["state"] == "label_more" or log_dict["iteration"] == 0:
+                #response[ "top_k_queries_with_scores"]= log_dict["top_k_queries_with_scores"]
                 return JsonResponse(response)
             else:
                 response["current_npos"] = log_dict["current_npos"]
@@ -215,31 +226,32 @@ class iterative_synthesis_live(APIView):
                 response["best_query"] = log_dict["best_query"]
                 response["best_score"] = log_dict["best_score"]
                 response["predicted_labels_test"] = log_dict["predicted_labels_test"]
+                response[ "top_k_queries_with_scores"]= log_dict["top_k_queries_with_scores"]
                 return JsonResponse(post_processing(response, request.session["test_video_paths"], request.session["test_labels"]))
 
 class iterative_synthesis(APIView):
     def get(self, request, format=None):
         request.session["iteration"] += 1
         log = request.session["log"]
+        #print("ROLY", log[request.session["iteration"]]["top_k_queries_with_scores"])
         if request.session["iteration"] < len(log):
             return JsonResponse(post_processing(log[request.session["iteration"]], request.session["test_video_paths"], request.session["test_labels"]))
         else:
             request.session = {}
             return JsonResponse({"state": "terminated"})
 
-def udf_labels(video_paths, video_ids):
+def udf_labels(video_ids):
     #filter_labels_path = 
 
     if(os.path.exists(os.path.join(module_dir,'filter_labels.json'))):
         with open('equi_app/filter_labels.json', 'r') as f:
-            print("HI PRELOADED 1")
             return json.load(f)
     else:
         dsn = "dbname=equi_app user=manasiganti host=localhost" #clean up later
         with psycopg.connect(dsn) as conn:
             with conn.cursor() as cur:
                 output_filters = []
-                for (path, vid) in zip(video_paths, video_ids):
+                for vid in video_ids:
                     cur.execute("SELECT DISTINCT Color FROM Obj_clevrer WHERE vid={vid};".format(vid=vid)) #todo: no for loop
                     vid_filters_color = cur.fetchall()
                     cur.execute("SELECT DISTINCT Shape FROM Obj_clevrer WHERE vid={vid};".format(vid=vid))
@@ -300,6 +312,5 @@ def post_processing(log, test_video_paths, test_labels):
     log_copy["predicted_pos_video_gt_labels"] = predicted_pos_video_gt_labels
     log_copy["predicted_neg_video_paths"] = predicted_neg_video_paths
     log_copy["predicted_neg_video_gt_labels"] = predicted_neg_video_gt_labels
-
     log_copy["best_query_scene_graph"] = str_to_program_postgres(log_copy["best_query"])
     return log_copy

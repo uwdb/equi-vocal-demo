@@ -1,27 +1,54 @@
 // TODO: buttons in the main container should be fixed to the bottom of the page (not as part of the scrollable area)
+var filter_values = ["", "", ""];
 $(document).ready(function(){
     $(".filter-button").click(function(){
         var value = $(this).attr('data-filter');
-        
+        //var value2 = document.getElementsByClassName('filter-button2').attr('data-filter');
+        //var value3 = document.getElementsByClassName('filter-button3').attr('data-filter');
+        var index = -1;
+        if($(this).attr('data-filtype') == "color"){
+            index = 0;
+        } else if($(this).attr('data-filtype') == "shape"){
+            index = 1;
+        } else if($(this).attr('data-filtype') == "material") {
+            index = 2;
+        }
         if(value == "all")
         {
             //$('.filter').removeClass('hidden');
-            $('.filter').show('1000');
-        }
+            //$(".filter").not('.'+value).hide('3000');
+            filter_values[index] = "";
+            
+        } 
         else
         {
+            filter_values[index] = "." + value;
 //            $('.filter[filter-item="'+value+'"]').removeClass('hidden');
 //            $(".filter").not('.filter[filter-item="'+value+'"]').addClass('hidden');
-            $(".filter").not('.'+value).hide('3000');
-            $('.filter').filter('.'+value).show('3000');
-            
+            //$(".filter").not('.'+value +",." + value2 +",." + value3).hide('3000');
+            //$('.filter').filter('.'+value +",." + value2 +",." + value3).show('3000');  
+                
         }
+        var filvalstr ="";
+        for(var i = 0; i < filter_values.length && filter_values[i] != ""; i++){
+            filvalstr += filter_values[i];
+        }
+        console.log(filvalstr);
+        if(filvalstr != ""){
+            //terms.every(term => str.includes(term)
+            $(".filter").not(filvalstr).hide('3000');
+            $('.filter').filter(filvalstr).show('3000'); //function() {return $(this).hasClass(filvalstr)}).show('3000');      
+        } else{
+            $('.filter').show('1000');
+        }
+        
+
     });
     
-    if ($(".filter-button").removeClass("active")) {
+    /* if ($(".filter-button").removeClass("active")) {
         $(this).removeClass("active");
         }
-    $(this).addClass("active");
+    $(this).addClass("active");*/
 
 });
 
@@ -31,6 +58,8 @@ const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstra
 const graph = JSON.parse(document.getElementById('render-scene-graph').textContent);
 
 const myPopoverTrigger = document.getElementById('image-graph-popover');
+
+
 myPopoverTrigger.addEventListener('inserted.bs.popover', () => {
     $('#image-graph').empty();
     renderSceneGraph('#image-graph', graph);
@@ -176,9 +205,68 @@ async function showMoreSegments() {
     }
 }
 
-function userLabelToggle(){
-    $(this).addClass("to_submit");
-    console.log("ADDED TO SUBMIT");
+
+const createGallery=(video_path, label, filterstr, index)=>{
+    return $(`
+        <div class="card m-1 filter ${filterstr}"> 
+            <video width="150" controls autoplay loop muted class="p-2">
+                <source src="${video_path}" type="video/mp4"> Your browser does not
+                support the video tag.
+            </video>
+            <div class="card-body btn-group btn-group-sm p-2" role="group" aria-label="Binary label of the video segment">
+                <input type="radio" class="btn-check" name="init_btnradio_${index}" id="init_btnradio1_${index}" onclick = "userLabelToggle()" autocomplete="off">
+                <label class="btn btn-outline-primary" style="--bs-btn-padding-y: .2rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .7rem;" for="init_btnradio1_${index}">Positive</label>
+
+                <input type="radio" class="btn-check" name="init_btnradio_${index}" id="init_btnradio2_${index}" autocomplete="off" onclick = "userLabelToggle()" >
+                <label class="btn btn-outline-primary" style="--bs-btn-padding-y: .2rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .7rem;" for="init_btnradio2_${index}">Negative</label>
+                
+              </div>
+        </div>
+    `);
+}
+
+function changePage(page_num){
+    $(this).addClass("active");
+    var galleryContainer = $("#gallery");
+    galleryContainer.empty();;
+    page_num = parseInt(page_num);
+    console.log(page_num);
+    video_paths = document.getElementById("vidData").value; 
+    vp = parseVidPathStr(video_paths);
+    
+    for (var i = 0; i < vp[page_num].length; i++){
+        console.log(vp[page_num][i][0]);
+        var card = createGallery(vp[page_num][i][0], vp[page_num][i][1], vp[page_num][i][2], i);
+        console.log(typeof card);
+        console.log(typeof galleryContainer);
+        galleryContainer.append(card);
+    }
+}
+
+function parseVidPathStr(video_paths){
+    vp1 = video_paths.slice(3, video_paths.length-3);
+    vp1 = vp1.split("]], [[");
+    vp2 = []
+    for(var i = 0; i < vp1.length; i++){
+        vp2.push(vp1[i].split("], ["));
+    }
+    vp3 = []
+    for(var i = 0; i < vp2.length; i++){
+        //console.log(video_paths_sliced[i]);
+        vids_list = [];
+        for(var j = 0; j < vp2[i].length; j++){
+            console.log(vp2[i][j]);
+            sub_list = vp2[i][j].split(", ");
+            sub_list[0] = sub_list[0].slice(1, sub_list[0].length-1);
+            sub_list[1] = parseInt(sub_list[1]);
+            sub_list[2] = sub_list[2].slice(1, sub_list[2].length-1);
+            vids_list.push(sub_list);
+        }
+        vp3.push(vids_list);
+    }
+    console.log(vp3.length);
+    console.log(vp3[0][0]); 
+    return vp3;
 }
 
 function resetFilter(opt){
@@ -205,7 +293,24 @@ function showSelectedFilter(item, opt) {
     }
 }
 
+function userLabelToggle(id){
+    var btn = $("#"+id);
+    btn.addClass("to_submit");
+    id = id.slice(15);
+    console.log("to submit id ", id);
+    btn.data('index', id);
+}
 
+const createTopQueriesDropdown = (top_k_queries_with_scores) => {
+    // For every best_query, best_score pair, create an option, and select the first one
+    var options = ``;
+    for (var i = 0; i < Math.min(top_k_queries_with_scores.length, 100); i++) {
+        options += `<option value="${i}" ${i == 0 ? "selected": ""}>${top_k_queries_with_scores[i][0]} (${top_k_queries_with_scores[i][1].toFixed(3)})</option>`;
+    }
+    return `
+        ${options}
+    `;
+}
 
 async function iterativeSynthesis(flag) {
     $(this).attr("disabled", true);
@@ -214,21 +319,28 @@ async function iterativeSynthesis(flag) {
     if (flag == 'live') {
         // Get the user labels
         var user_labels = [];
-        var elementArray = document.getElementsByClassName("to_submit");
+
+        var elementArray = document.getElementsByClassName("to_submit");//$(".to_submit").map(function() { return this.innerHTML; }).get();
+        console.log(elementArray.length);
         elementArray = [].slice.call(elementArray, 0);
+        submitted_indices = []
         for (var i = 0; i < elementArray.length; ++i) {
-            if (elementArray[i].checked) {
+            var elem = elementArray[i];
+            if (elem.checked) {
                 user_labels.push(1);
-                console.log("hi 1");
+                console.log("hi - pos");
             }
             else {
                 user_labels.push(0);
-                console.log("hi 2");
+                console.log("hi - neg");
             }
-            elementArray[i].classList.replace("to_submit", "submitted")
+            console.log($(elem).data('index'));
+            submitted_indices.push(parseInt($(elem).data('index')));
+            elementArray[i].classList.replace("to_submit", "submitted");
         }
         console.log("user_labels", user_labels);
-
+        console.log(user_labels.length);
+        console.log("submitted_indices", submitted_indices);
         // TODO: disable previous toggle buttons
         const settings = {
             method: 'POST',
@@ -237,7 +349,8 @@ async function iterativeSynthesis(flag) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                user_labels: user_labels
+                user_labels: user_labels,
+                submitted_indices: submitted_indices
             })
         };
         response = await fetch("iterative_synthesis_live/", settings);
@@ -294,23 +407,43 @@ async function iterativeSynthesis(flag) {
             var best_query_scene_graph = data.best_query_scene_graph;
             var best_score = data.best_score;
             // Update stats and top-k queries
-            var stats = $("<div></div>").addClass("alert alert-info mt-3").html(`
-                <strong>Current iteration</strong>: ${iteration}
-                <br>
-                <strong>Current positive examples</strong>: ${current_npos}
-                <br>
-                <strong>Current negative examples</strong>: ${current_nneg}
-                <br>
-                <strong>Top-10 queries (with scores)</strong>:
-                <select class="form-select form-select-sm mt-2">
-                <option selected>${best_query} (${best_score.toFixed(3)})</option>
+            if (flag == 'live') {
+                var top_k_queries_with_scores = data.top_k_queries_with_scores;
+                var options = createTopQueriesDropdown(top_k_queries_with_scores);
+
+                var stats = $("<div></div>").addClass("alert alert-info mt-3").html(`
+                    <strong>Current iteration</strong>: ${iteration}
+                    <br>
+                    <strong>Current positive examples</strong>: ${current_npos}
+                    <br>
+                    <strong>Current negative examples</strong>: ${current_nneg}
+                    <br>
+                    <strong>Top-10 queries (with scores)</strong>:
+                    <select class="form-select form-select-sm text-wrap mt-2">
+                    ${options}
+                    </select>
+                `);
+            } else{
+                var stats = $("<div></div>").addClass("alert alert-info mt-3").html(`
+                    <strong>Current iteration</strong>: ${iteration}
+                    <br>
+                    <strong>Current positive examples</strong>: ${current_npos}
+                    <br>
+                    <strong>Current negative examples</strong>: ${current_nneg}
+                    <br>
+                    <strong>Top-10 queries (with scores)</strong>:
+                    <select class="form-select form-select-sm mt-2">
+                    <option selected>${best_query} (${best_score.toFixed(3)})</option>
+                    </select>
+                `);
+            }
+            main_container.append(stats);
+
+/*                <strong>Top-10 queries (with scores)</strong>:
                 <option value="1">One</option>
                 <option value="2">Two</option>
                 <option value="3">Three</option>
-                </select>
-            `);
-            main_container.append(stats);
-
+*/
             // Update prediction
             $('.popover').remove();
             var prediction_container = $("#prediction-container").empty();
@@ -407,7 +540,10 @@ async function iterativeSynthesis(flag) {
         // Update gallery
         var gallery = $("<div></div>").addClass("d-flex flex-wrap border border-1 border-secondary");
         for (var i = 0; i < segments.length; i++) {
-            gallery.append(createSampleInput(segments[i], selected_gt_labels[i], i, iteration, flag == 'live'));
+            var sampleInput = createSampleInput(segments[i], selected_gt_labels[i], i, iteration, flag == 'live');
+            //console.log("sample input:");
+            //console.log(sampleInput);
+            gallery.append(sampleInput);
         }
         main_container.append(gallery);
         // Update button
