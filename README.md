@@ -18,15 +18,18 @@ in equi_app/views.py
 
 	line 67: change input_dir value to path to EQUI-VOCAL/inputs folder
 
-
 # Start and stop the server
+```
 brew services restart postgresql@14
 pg_ctl -D /usr/local/var/postgresql@14 restart
 brew services stop postgresql@14
+```
+
 # Connect to server
 The name of the database is `equi_app`
-
+```
 psql equi_app
+```
 
 # Postgres UDF
 compile (macOS):
@@ -36,7 +39,11 @@ cc -bundle -flat_namespace -undefined suppress -o functors.so functors.o
 ```
 
 # Virtual environment
+```
 source env/bin/activate
+```
 
 # Django
+```
 python manage.py runserver
+```
