@@ -1,4 +1,5 @@
 import random
+from django.conf import settings
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.template import loader
@@ -11,7 +12,7 @@ import pickle
 import time
 import datetime
 import sys
-sys.path.append("/gscratch/balazinska/enhaoz/complex_event_video")
+# sys.path.append("/gscratch/balazinska/enhaoz/complex_event_video")
 from src.synthesize import test_algorithm_interactive
 from src.utils import str_to_program_postgres
 
@@ -101,7 +102,7 @@ class iterative_synthesis_init(APIView):
 
         predicate_dict = [{"name": "Near", "parameters": [1], "nargs": 2}, {"name": "Far", "parameters": [3], "nargs": 2}, {"name": "LeftOf", "parameters": None, "nargs": 2}, {"name": "Behind", "parameters": None, "nargs": 2}, {"name": "RightOf", "parameters": None, "nargs": 2}, {"name": "FrontOf", "parameters": None, "nargs": 2}, {"name": "RightQuadrant", "parameters": None, "nargs": 1}, {"name": "LeftQuadrant", "parameters": None, "nargs": 1}, {"name": "TopQuadrant", "parameters": None, "nargs": 1}, {"name": "BottomQuadrant", "parameters": None, "nargs": 1}, {"name": "Color", "parameters": ["gray", "red", "blue", "green", "brown", "cyan", "purple", "yellow"], "nargs": 1}, {"name": "Shape", "parameters": ["cube", "sphere", "cylinder"], "nargs": 1}, {"name": "Material", "parameters": ["metal", "rubber"], "nargs": 1}]
 
-        input_dir = "/gscratch/balazinska/enhaoz/complex_event_video/inputs"
+        input_dir = json.load(open(os.path.join(settings.BASE_DIR, 'config.json')))['input_dir']
         dataset_name = "demo_queries_scene_graph"
         query_str = example_query["query_str"]
         # query_str = 'Conjunction(Conjunction(Color_red(o0), Color_yellow(o1)), LeftOf(o0, o1)); RightOf(o0, o1)'
@@ -184,7 +185,7 @@ class iterative_synthesis_live(APIView):
             init_labeled_index = example_query["init_labeled_index"][run_id]
             predicate_dict = [{"name": "Near", "parameters": [1], "nargs": 2}, {"name": "Far", "parameters": [3], "nargs": 2}, {"name": "LeftOf", "parameters": None, "nargs": 2}, {"name": "Behind", "parameters": None, "nargs": 2}, {"name": "RightOf", "parameters": None, "nargs": 2}, {"name": "FrontOf", "parameters": None, "nargs": 2}, {"name": "RightQuadrant", "parameters": None, "nargs": 1}, {"name": "LeftQuadrant", "parameters": None, "nargs": 1}, {"name": "TopQuadrant", "parameters": None, "nargs": 1}, {"name": "BottomQuadrant", "parameters": None, "nargs": 1}, {"name": "Color", "parameters": ["gray", "red", "blue", "green", "brown", "cyan", "purple", "yellow"], "nargs": 1}, {"name": "Shape", "parameters": ["cube", "sphere", "cylinder"], "nargs": 1}, {"name": "Material", "parameters": ["metal", "rubber"], "nargs": 1}]
 
-            input_dir = "/gscratch/balazinska/enhaoz/complex_event_video/inputs"
+            input_dir = json.load(open(os.path.join(settings.BASE_DIR, 'config.json')))['input_dir']
             dataset_name = "user_study_queries_scene_graph"
             query_str = example_query["query_str"]
             # query_str = 'Conjunction(Conjunction(Color_red(o0), Color_yellow(o1)), LeftOf(o0, o1)); RightOf(o0, o1)'

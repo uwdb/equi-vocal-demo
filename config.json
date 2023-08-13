@@ -1,0 +1,6 @@
+{
+    "_comments": "This is the configuration file for the EQUI-VOCAL system. Please fill in the following information. The db_name is the name of your database. The db_user is the user name of your database. The input_dir is the directory where you put your input files.",
+    "db_name": "myinner_db",
+    "db_user": "zhangenhao",
+    "input_dir": "/Users/zhangenhao/Desktop/UW/Research/equi-vocal-demo/EQUI-VOCAL/inputs"
+}
