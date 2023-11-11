@@ -14,7 +14,7 @@ import datetime
 import sys
 # sys.path.append("/gscratch/balazinska/enhaoz/complex_event_video")
 from src.synthesize import test_algorithm_interactive
-from src.utils import dsl_to_program_old
+from src.utils import dsl_to_program
 
 module_dir = os.path.dirname(__file__)   #get current directory
 
@@ -312,7 +312,7 @@ def post_processing(log, test_video_paths, test_labels):
     log_copy["predicted_neg_video_paths"] = predicted_neg_video_paths
     log_copy["predicted_neg_video_gt_labels"] = predicted_neg_video_gt_labels
 
-    log_copy["best_query_scene_graph"] = dsl_to_program_old(log_copy["best_query"])
+    log_copy["best_query_scene_graph"] = dsl_to_program(log_copy["best_query"])
     # FIXME: temporarily set the best query list to be a list of one element
     log_copy["best_query_list"] = [log_copy["best_query"]]
     log_copy["best_score_list"] = [log_copy["best_score"]]
@@ -402,7 +402,7 @@ def init_page(request, query_idx, labeling_budget=50, videos_per_page=10, beam_w
         print("labels", labels)
 
     query_text = example_query["query_text"]
-    query_scene_graph = dsl_to_program_old(example_query["query_str"])
+    query_scene_graph = dsl_to_program(example_query["query_str"])
     print(example_query["query_str"])
     print(query_scene_graph)
     query_datalog = example_query["query_datalog"]
