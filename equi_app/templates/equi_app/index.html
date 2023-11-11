@@ -60,44 +60,9 @@
                     </li>
                     <li class="nav-item">
                         {% if query_idx == 3 %}
-                        <a class="nav-link active" href="3">Live Query 1</a>
+                        <a class="nav-link active" href="3">Live Query</a>
                         {% else %}
-                        <a class="nav-link" href="3">Live Query 1</a>
-                        {% endif %}
-                    </li>
-                    <li class="nav-item">
-                        {% if query_idx == 4 %}
-                        <a class="nav-link active" href="4">Live Query 2</a>
-                        {% else %}
-                        <a class="nav-link" href="4">Live Query 2</a>
-                        {% endif %}
-                    </li>
-                    <li class="nav-item">
-                        {% if query_idx == 5 %}
-                        <a class="nav-link active" href="5">Live Query 3</a>
-                        {% else %}
-                        <a class="nav-link" href="5">Live Query 3</a>
-                        {% endif %}
-                    </li>
-                    <li class="nav-item">
-                        {% if query_idx == 6 %}
-                        <a class="nav-link active" href="6">Live Query 4</a>
-                        {% else %}
-                        <a class="nav-link" href="6">Live Query 4</a>
-                        {% endif %}
-                    </li>
-                    <li class="nav-item">
-                        {% if query_idx == 7 %}
-                        <a class="nav-link active" href="7">Live Query 5</a>
-                        {% else %}
-                        <a class="nav-link" href="7">Live Query 5</a>
-                        {% endif %}
-                    </li>
-                    <li class="nav-item">
-                        {% if query_idx == 8 %}
-                        <a class="nav-link active" href="8">Live Query 6</a>
-                        {% else %}
-                        <a class="nav-link" href="8">Live Query 6</a>
+                        <a class="nav-link" href="3">Live Query</a>
                         {% endif %}
                     </li>
                 </ul>
@@ -107,73 +72,46 @@
     </nav>
     <div class="container pt-5 h-90">
         <span class="lead">Target Query: {{ query_text }} </span>
-        <button id='image-graph-popover' type="button" class="btn btn-primary btn-sm ms-2" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-custom-class="custom-popover" data-bs-title="Scene graph visualization" data-bs-content='<div id="image-graph" class="row"></div>' data-bs-html="true">
+        <button id='image-graph-popover' type="button" class="_popover btn btn-primary btn-sm ms-2" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-custom-class="custom-popover" data-bs-title="Scene graph visualization" data-bs-content='<div id="image-graph" class="row"></div>' data-bs-html="true">
             Scene Graph
         </button>
-        <button type="button" class="btn btn-primary btn-sm ms-2" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-custom-class="custom-popover" data-bs-title="Datalog rules" data-bs-content="<pre>{{ query_datalog }}</pre>" data-bs-html="true">
+        <button type="button" class="_popover btn btn-primary btn-sm ms-2" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-custom-class="custom-popover" data-bs-title="Datalog rules" data-bs-content="<pre>{{ query_datalog }}</pre>" data-bs-html="true">
             Datalog
         </button>
         {% if config is not None %}
-        <button type="button" class="btn btn-primary btn-sm ms-2" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-custom-class="custom-popover" data-bs-title="System configuration" data-bs-content="<div>{{ config }}</div>" data-bs-html="true">
+        <button type="button" class="_popover btn btn-primary btn-sm ms-2" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-custom-class="custom-popover" data-bs-title="System configuration" data-bs-content="<div>{{ config }}</div>" data-bs-html="true">
             Configuration
         </button>
         {% else %}
-        <button id='config-popover' type="button" class="btn btn-primary btn-sm ms-2" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-custom-class="custom-popover" data-bs-title="System configuration" data-bs-content='<div id="config-form" class="row"></div>' data-bs-html="true">
+        <button id='config-popover' type="button" class="_popover btn btn-primary btn-sm ms-2" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-custom-class="custom-popover" data-bs-title="System configuration" data-bs-content='<div id="config-form" class="row"></div>' data-bs-html="true" data-query-id="{{ query_idx }}" data-labeling-budget="{{ labeling_budget }}" data-videos-per-page="{{ videos_per_page }}" data-beam-width="{{ beam_width }}">
             Configuration
         </button>
         {% endif %}
 
-        <div class="row g-3 pt-3 align-items-center">
-            <div class="col-auto">
-              <label for="run_id" class="col-form-label">Run ID</label>
-            </div>
-            <div class="col-auto">
-              <input type="number" id="run_id" class="form-control" min="0" max="19" value="0">
-            </div>
-            <div class="col-auto">
-              <span class="form-text">
-               Between 0-19.
-              </span>
-            </div>
-            <div class="col-auto">
-                <button id="set_run_btn" type="button spinnable" class="btn btn-outline-primary" onclick="setRun()">Set run</button>
-            </div>
-        </div>
-
         <div class="row pt-5" style="height: 75vh;">
-            <div class="col-12 mh-100">  <!-- For user study -->
-            <!-- <div class="col-7 mh-100">  For demo -->
+            <!-- main labeling pane -->
+            <div class="col-7 mh-100">
                 <div class="border h-100 p-2 overflow-auto">
                     <div id="main-container" class="m-3">
                         <h3 class="mb-3">Search on Training Data</h3>
                         <h5>Initialization</h5>
+                        {% if query_idx == 3 %}
+                        <div id="init_label_stats">You have provided 0 positive and 0 negative examples.</div>
+                        {% endif %}
                         <div id="gallery" class="d-flex flex-wrap border border-1 border-secondary overflow-auto" style="max-height: 58vh;">
-                            {% for video_path, label in video_paths %}
+                            {% for vid, video_path, label in video_paths %}
                             <div class="card m-1">
-                                <video width="250" controls muted class="p-2" ontimeupdate="updateTime(this)">
+                                <video width="210" controls muted class="p-2" ontimeupdate="updateTime(this)">
                                     <source src="{% static video_path %}" type="video/mp4"> Your browser does not
                                     support the video tag.
                                 </video>
                                 <div class="ps-2">Timestamp:</div>
-                                <div class="card-body btn-group btn-group-sm p-2" role="group" aria-label="Binary label of the video segment">
-                                    {% if query_idx >= 3 %}
-                                        <!-- <input type="radio" class="btn-check to_submit" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio1_{{ forloop.counter0 }}" autocomplete="off" checked>
+                                <div class="card-body btn-group btn-group-sm p-2 button_group_init" role="group" aria-label="Binary label of the video segment" data-vid="{{vid}}">
+                                    {% if query_idx == 3 %}
+                                        <input type="checkbox" class="btn-check btn_pos init_btn_{{ forloop.counter0 }} button_init" id="init_btnradio1_{{ forloop.counter0 }}" autocomplete="off">
                                         <label class="btn btn-outline-primary" for="init_btnradio1_{{ forloop.counter0 }}">Positive</label>
 
-                                        <input type="radio" class="btn-check" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio2_{{ forloop.counter0 }}" autocomplete="off">
-                                        <label class="btn btn-outline-primary" for="init_btnradio2_{{ forloop.counter0 }}">Negative</label> -->
-                                        {% if label == 1 %}
-                                        <input type="radio" class="btn-check to_submit" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio1_{{ forloop.counter0 }}" autocomplete="off" checked>
-                                        {% else %}
-                                        <input type="radio" class="btn-check to_submit" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio1_{{ forloop.counter0 }}" autocomplete="off" disabled>
-                                        {% endif %}
-                                        <label class="btn btn-outline-primary" for="init_btnradio1_{{ forloop.counter0 }}">Positive</label>
-
-                                        {% if label == 1 %}
-                                        <input type="radio" class="btn-check" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio2_{{ forloop.counter0 }}" autocomplete="off" disabled>
-                                        {% else %}
-                                        <input type="radio" class="btn-check" name="init_btnradio_{{ forloop.counter0 }}" id="init_btnradio2_{{ forloop.counter0 }}" autocomplete="off" checked>
-                                        {% endif %}
+                                        <input type="checkbox" class="btn-check btn_neg init_btn_{{ forloop.counter0 }} button_init" id="init_btnradio2_{{ forloop.counter0 }}" autocomplete="off">
                                         <label class="btn btn-outline-primary" for="init_btnradio2_{{ forloop.counter0 }}">Negative</label>
                                     {% else %}
                                         {% if label == 1 %}
@@ -195,25 +133,20 @@
                             {% endfor %}
                         </div>
                         <div class="d-flex justify-content-center pt-3">
+                            {% if query_idx >= 3 %}
                             <div id="btn" class="btn-group">
-                                <button type="button" class="btn btn-outline-primary" onclick="showMoreSegments()">Show
-                                    me
-                                    more</button>
-                                {% if query_idx >= 3 %}
-                                <button type="button" class="btn btn-outline-primary spinnable"
-                                    onclick="iterativeSynthesis('live')">Ready to
-                                    go!</button>
-                                {% else %}
-                                <button type="button" class="btn btn-outline-primary spinnable"
-                                    onclick="iterativeSynthesis('init')">Ready to
-                                    go!</button>
-                                {% endif %}
+                                <button type="button" class="btn btn-outline-primary" onclick="showMoreSegments()">Show me more</button>
+                                <button type="button" class="btn btn-outline-primary spinnable" onclick="iterativeSynthesis('live_init')">Ready to go!</button>
                             </div>
+                            {% else %}
+                            <button id="btn" type="button" class="btn btn-outline-primary spinnable" onclick="iterativeSynthesis('init')">Ready to go!</button>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-5 mh-100" hidden>
+            <!-- Prediction pane  -->
+            <div class="col-5 mh-100">
                 <div class="border h-100 p-2 overflow-auto">
                     <div id = "prediction-container" class="p-3">
                         <h3 class="mb-3">Best Query on Test Data</h3>

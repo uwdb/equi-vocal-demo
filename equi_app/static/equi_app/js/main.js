@@ -3,61 +3,119 @@
 const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
 const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
 
+$('._popover').on('click', function (e) {
+    $('._popover').not(this).popover('hide');
+});
+
 const graph = JSON.parse(document.getElementById('render-scene-graph').textContent);
 
 const myPopoverTrigger = document.getElementById('image-graph-popover');
 myPopoverTrigger.addEventListener('inserted.bs.popover', () => {
     $('#image-graph').empty();
     renderSceneGraph('#image-graph', graph);
-  })
+  });
 
 const configPopoverTrigger = document.getElementById('config-popover');
 if (configPopoverTrigger) {
     configPopoverTrigger.addEventListener('inserted.bs.popover', () => {
+        const labelingBudget = parseInt(configPopoverTrigger.dataset.labelingBudget);
+        const videosPerPage = parseInt(configPopoverTrigger.dataset.videosPerPage);
+        const beamWidth = parseInt(configPopoverTrigger.dataset.beamWidth);
+        const disabledSubmit = configPopoverTrigger.dataset.disabledSubmit;
         $('#config-form').html(`
-            <form>
+            <form onsubmit="submitConfigForm(event)">
             <div class="row">
+            <input type="hidden" name="queryId" value="${configPopoverTrigger.dataset.queryId}">
             <label for="labelingBudget" class="col-sm-2 col-form-label">Labeling Budget</label>
             <div class="col-sm-2">
-                <select class="form-select">
-                    <option value="1" selected>30</option>
-                    <option value="2">50</option>
-                    <option value="3">100</option>
+                <select class="form-select" id="labelingBudget" name="labelingBudget" ${disabledSubmit ? 'disabled' : ''}>
+                    <option value="20" ${labelingBudget == 20 ? 'selected' : ''}>20</option>
+                    <option value="30" ${labelingBudget == 30 ? 'selected' : ''}>30</option>
+                    <option value="40" ${labelingBudget == 40 ? 'selected' : ''}>40</option>
+                    <option value="50" ${labelingBudget == 50 ? 'selected' : ''}>50</option>
                 </select>
             </div>
-            <label for="initExamples" class="col-sm-2 col-form-label"># Initial Examples</label>
+            <label for="videosPerPage" class="col-sm-2 col-form-label">Videos Per Page</label>
             <div class="col-sm-2">
-                <select class="form-select">
-                    <option value="10" selected>10</option>
-                    <option value="20">20</option>
-                    <option value="30">30</option>
-                    <option value="40">40</option>
-                    <option value="50">50</option>
+                <select class="form-select" id="videosPerPage" name="videosPerPage" ${disabledSubmit ? 'disabled' : ''}>
+                    <option value="10" ${videosPerPage == 10 ? 'selected' : ''}>10</option>
+                    <option value="20" ${videosPerPage == 20 ? 'selected' : ''}>20</option>
+                    <option value="30" ${videosPerPage == 30 ? 'selected' : ''}>30</option>
                 </select>
             </div>
             <label for="beamWidth" class="col-sm-2 col-form-label">Beam Width</label>
             <div class="col-sm-2">
-                <select class="form-select">
-                    <option value="1">1</option>
-                    <option value="5">5</option>
-                    <option value="10">10</option>
-                    <option value="15">15</option>
-                    <option value="20">20</option>
+                <select class="form-select" id="beamWidth" name="beamWidth" ${disabledSubmit ? 'disabled' : ''}>
+                    <option value="1" ${beamWidth == 1 ? 'selected' : ''}>1</option>
+                    <option value="5" ${beamWidth == 5 ? 'selected' : ''}>5</option>
+                    <option value="10" ${beamWidth == 10 ? 'selected' : ''}>10</option>
+                    <option value="15" ${beamWidth == 15 ? 'selected' : ''}>15</option>
+                    <option value="20" ${beamWidth == 20 ? 'selected' : ''}>20</option>
                 </select>
             </div>
             </div>
-            <button type="submit" class="mt-3 btn btn-outline-primary">Set parameters</button>
+            <input type="submit" id="configSubmitButton" class="mt-3 btn btn-outline-primary" value="Set parameters" ${disabledSubmit ? 'disabled' : ''}>
         </form>
         `);
+        // <button type="submit" class="mt-3 btn btn-outline-primary">Set parameters</button>
     })
 }
 
+// Store vids of initial examples
+const initial_positive = new Set();
+const initial_negative = new Set();
+
+// For labeling initail examples, we use checkboxs where selecting one will deselect others.
+$(".button_init").click(setButtonOnClick);
+
+function setButtonOnClick() {
+    const clickedButton = $(this);
+    if (clickedButton.prop('checked')) {
+        if (clickedButton.hasClass("btn_pos")) {
+            initial_positive.add(parseInt(clickedButton.parent().data("vid")));
+            initial_negative.delete(parseInt(clickedButton.parent().data("vid")));
+        }
+        else {
+            initial_negative.add(parseInt(clickedButton.parent().data("vid")));
+            initial_positive.delete(parseInt(clickedButton.parent().data("vid")));
+        }
+        const buttons = clickedButton.siblings(".button_init");
+        buttons.prop('checked', false);;
+    }
+    else {
+        if (clickedButton.hasClass("btn_pos")) {
+            initial_positive.delete(parseInt(clickedButton.parent().data("vid")));
+        }
+        else {
+            initial_negative.delete(parseInt(clickedButton.parent().data("vid")));
+        }
+    }
+    // Update the text
+    $("#init_label_stats").html(`You have provided ${initial_positive.size} positive and ${initial_negative.size} negative examples.`);
+}
 
 const createSampleInput = (segment_src, segment_label, i, prefix, task_name) => {
-    if (task_name == "live") {
+    if (task_name == "show_more") {
         return $(`
             <div class="card m-1">
-                <video width="250" controls muted class="p-2" ontimeupdate="updateTime(this)">
+                <video width="210" controls muted class="p-2" ontimeupdate="updateTime(this)">
+                    <source src="${segment_src[1]}" type="video/mp4"> Your browser does not support the video tag.
+                </video>
+                <div class="ps-2">Timestamp:</div>
+                <div class="card-body btn-group btn-group-sm p-2 button_group_init" role="group" aria-label="Binary label of the video segment" data-vid="${segment_src[0]}">
+                    <input type="checkbox" class="btn-check btn_pos init_btn_${i} button_init" id="init_btnradio1_${i}" autocomplete="off">
+                    <label class="btn btn-outline-primary" for="init_btnradio1_${i}">Positive</label>
+
+                    <input type="checkbox" class="btn-check btn_neg init_btn_${i} button_init" id="init_btnradio2_${i}" autocomplete="off">
+                    <label class="btn btn-outline-primary" for="init_btnradio2_${i}">Negative</label>
+                </div>
+            </div>
+        `);
+    }
+    else if (task_name == "live" || task_name == "live_init") {
+        return $(`
+            <div class="card m-1">
+                <video width="210" controls muted class="p-2" ontimeupdate="updateTime(this)">
                     <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
                 </video>
                 <div class="ps-2">Timestamp:</div>
@@ -71,27 +129,11 @@ const createSampleInput = (segment_src, segment_label, i, prefix, task_name) => 
             </div>
         `);
     }
-    else if (task_name == "user_study") {
-        return $(`
-            <div class="card m-1">
-                <video width="250" controls muted class="p-2" ontimeupdate="updateTime(this)">
-                    <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
-                </video>
-                <div class="ps-2">Timestamp:</div>
-                <div class="card-body btn-group btn-group-sm p-2" role="group" aria-label="Binary label of the video segment">
-                    <input type="radio" class="btn-check to_submit" name="${prefix}_btnradio_${i}" id="${prefix}_btnradio1_${i}" autocomplete="off" ${segment_label == 1 ? 'checked' : 'disabled'}>
-                    <label class="btn btn-outline-primary" for="${prefix}_btnradio1_${i}">Positive</label>
-
-                    <input type="radio" class="btn-check" name="${prefix}_btnradio_${i}" id="${prefix}_btnradio2_${i}" autocomplete="off" ${segment_label == 1 ? 'disabled' : 'checked'}>
-                    <label class="btn btn-outline-primary" for="${prefix}_btnradio2_${i}">Negative</label>
-                </div>
-            </div>
-        `);
-    }
     else {
+        // Default. Labels are disabled and will not be submitted to backend.
         return $(`
             <div class="card m-1">
-                <video width="250" controls muted class="p-2" ontimeupdate="updateTime(this)">
+                <video width="210" controls muted class="p-2" ontimeupdate="updateTime(this)">
                     <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
                 </video>
                 <div class="ps-2">Timestamp:</div>
@@ -110,10 +152,9 @@ const createSampleInput = (segment_src, segment_label, i, prefix, task_name) => 
 const createSampleOutput = (segment_src, segment_gt_label, i) => {
     return $(`
         <div class="card m-1 ${segment_gt_label}">
-            <video width="85" controls loop muted class="p-2" ontimeupdate="updateTime(this)">
+            <video width="170" controls loop muted class="p-2">
                 <source src="${segment_src}" type="video/mp4"> Your browser does not support the video tag.
             </video>
-            <div class="ps-2">Timestamp:</div>
         </div>
     `);
 }
@@ -174,11 +215,11 @@ async function showMoreSegments() {
     const response = await fetch("show_more_segments/");
     var data = await response.json();
     var segments = data.video_paths;
-    var selected_gt_labels = data.labels;
     $("#gallery").empty();
     for (var i = 0; i < segments.length; i++) {
-        $("#gallery").append(createSampleInput(segments[i], selected_gt_labels[i], i, "init"));
+        $("#gallery").append(createSampleInput(segments[i], null, i, "init", "show_more"));
     }
+    $(".button_init").click(setButtonOnClick);
 }
 
 // First thing: remove/disable the button, and show a spinner
@@ -196,8 +237,43 @@ function disabledSpinnerButton() {
 }
 
 async function iterativeSynthesis(flag) {
+    // Close all popovers
+    $('._popover').popover('hide');
+    if (configPopoverTrigger) {
+        // Disable the config popover submit button
+        configPopoverTrigger.dataset.disabledSubmit = true;
+    }
     var response;
-    if (flag == 'live') {
+    if (flag == 'live_init') {
+        // Get the user labels
+        var init_vids = [];
+        var user_labels = [];
+        initial_positive.forEach(value => {
+            init_vids.push(value);
+            user_labels.push(1);
+        });
+
+        initial_negative.forEach(value => {
+            init_vids.push(value);
+            user_labels.push(0);
+        });
+        console.log(init_vids);
+        console.log(user_labels);
+
+        const settings = {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                user_labels: user_labels,
+                init_vids: init_vids
+            })
+        };
+        response = await fetch("iterative_synthesis_live/", settings);
+    }
+    else if (flag == 'live') {
         // Get the user labels
         var user_labels = [];
         var elementArray = document.getElementsByClassName("to_submit");
@@ -232,10 +308,13 @@ async function iterativeSynthesis(flag) {
     } else {
         response = await fetch("iterative_synthesis/");
     }
+    // Receive the response, and update the page
     var data = await response.json();
+    console.log(data);
     var main_container = $("#main-container");
     if (data.state == "terminated") {
-        if (flag == 'live') {
+        if (flag == 'live' || flag == 'live_init') {
+            var iteration = data.iteration;
             var current_npos = data.current_npos;
             var current_nneg = data.current_nneg;
             var best_query = data.best_query;
@@ -254,7 +333,7 @@ async function iterativeSynthesis(flag) {
                 <br>
                 <strong>Current negative examples</strong>: ${current_nneg}
                 <br>
-                <strong>Top-10 queries (with scores)</strong>:
+                <strong>Top-100 queries (with scores)</strong>:
                 <select class="form-select form-select-sm mt-2">
                 ${options}
                 </select>
@@ -307,13 +386,7 @@ async function iterativeSynthesis(flag) {
             var best_score = data.best_score;
             var best_query_list = data.best_query_list;
             var best_score_list = data.best_score_list;
-            var top_k_queries_with_scores;
-            if (flag == 'live') {
-                top_k_queries_with_scores = data.top_k_queries_with_scores;
-            }
-            else {
-                top_k_queries_with_scores = [[best_query, best_score]];
-            }
+            var top_k_queries_with_scores = data.top_k_queries_with_scores;
 
             console.log(best_query_list);
             // Update stats and top-k queries
@@ -325,99 +398,103 @@ async function iterativeSynthesis(flag) {
                 <br>
                 <strong>Current negative examples</strong>: ${current_nneg}
                 <br>
-                <strong>Top-10 queries (with scores)</strong>:
+                <strong>Top-100 queries (with scores)</strong>:
                 <select class="form-select form-select-sm mt-2">
                 ${options}
                 </select>
             `);
             main_container.append(stats);
 
-            if (flag !== 'live') {
-                // Update prediction
-                $('.popover').remove();
-                var prediction_container = $("#prediction-container").empty();
-                var heading = $("<h3></h3>").addClass("mb-3").text("Best Query on Test Data")
-                prediction_container.append(heading);
+            // Update prediction
+            $('.popover').remove();
+            // Before deallocating the audio/video elements setting the following seems to force clean up of the element.
+            $('#prediction-container video').each(function () {
+                this.pause();
+                this.removeAttribute('src'); // empty source
+                this.load();
+            });
+            var prediction_container = $("#prediction-container").empty();
+            var heading = $("<h3></h3>").addClass("mb-3").text("Best Query on Test Data")
+            prediction_container.append(heading);
 
-                // Best query details
-                var best_query_heading = $("<span></span>").addClass("lead fs-6").text("Best query: " + best_query);
-                prediction_container.append(best_query_heading);
+            // Best query details
+            var best_query_heading = $("<span></span>").addClass("lead fs-6").text("Best query: " + best_query);
+            prediction_container.append(best_query_heading);
 
-                // Best query scene graph
-                prediction_container.append(createSceneGraph());
-                prediction_container.append(createDatalog(best_query));
-                const bestSceneGeraphPopoverTrigger = document.getElementById('best-query-graph-popover');
-                const bestDatalogPopoverTrigger = document.getElementById('best-query-datalog-popover');
-                new bootstrap.Popover(bestSceneGeraphPopoverTrigger);
-                new bootstrap.Popover(bestDatalogPopoverTrigger);
-                bestSceneGeraphPopoverTrigger.addEventListener('inserted.bs.popover', () => {
-                    $('#best-query-graph').empty();
-                    renderSceneGraph('#best-query-graph', best_query_scene_graph);
-                })
+            // Best query scene graph
+            prediction_container.append(createSceneGraph());
+            // prediction_container.append(createDatalog(best_query));
+            const bestSceneGeraphPopoverTrigger = document.getElementById('best-query-graph-popover');
+            // const bestDatalogPopoverTrigger = document.getElementById('best-query-datalog-popover');
+            new bootstrap.Popover(bestSceneGeraphPopoverTrigger);
+            // new bootstrap.Popover(bestDatalogPopoverTrigger);
+            bestSceneGeraphPopoverTrigger.addEventListener('inserted.bs.popover', () => {
+                $('#best-query-graph').empty();
+                renderSceneGraph('#best-query-graph', best_query_scene_graph);
+            })
 
-                var predicted_pos_segments = data.predicted_pos_video_paths;
-                var predicted_neg_segments = data.predicted_neg_video_paths;
-                var predicted_pos_gt_labels = data.predicted_pos_video_gt_labels;
-                var predicted_neg_gt_labels = data.predicted_neg_video_gt_labels;
+            var predicted_pos_segments = data.predicted_pos_video_paths;
+            var predicted_neg_segments = data.predicted_neg_video_paths;
+            var predicted_pos_gt_labels = data.predicted_pos_video_gt_labels;
+            var predicted_neg_gt_labels = data.predicted_neg_video_gt_labels;
 
-                var num_pred_pos = predicted_pos_segments.length;
-                var num_pred_neg = predicted_neg_segments.length;
+            var num_pred_pos = predicted_pos_segments.length;
+            var num_pred_neg = predicted_neg_segments.length;
 
-                //Counting true positives
-                var num_false_pos = 0;
-                for(var i = 0; i < predicted_pos_gt_labels.length; i++){
-                    if(predicted_pos_gt_labels[i] ==0){
-                        num_false_pos += 1;
-                    }
+            //Counting true positives
+            var num_false_pos = 0;
+            for(var i = 0; i < predicted_pos_gt_labels.length; i++){
+                if(predicted_pos_gt_labels[i] ==0){
+                    num_false_pos += 1;
                 }
-                var num_false_neg = 0;
-                for(var i = 0; i < predicted_neg_gt_labels.length; i++){
-                    if(predicted_neg_gt_labels[i] ==1){
-                        num_false_neg += 1;
-                    }
-                }
-
-                // Stats
-                prediction_container.append(createStats(num_pred_pos, num_pred_neg, num_false_pos, num_false_neg));
-
-                //Positive Gallery
-                var pos_predictions = $("<div></div>").addClass("d-flex justify-content-evenly flex-wrap border border-1 border-secondary mb-3"); //document.getElementById("pos-gallery");
-                var pos_heading = $("<h6>Positive</h6>").addClass("p-2 w-100");
-                var breakdiv = $("<div></div>").addClass("w-36");
-                pos_predictions.append(pos_heading);
-                pos_predictions.append(breakdiv);
-
-                for (var i = 0; i < predicted_pos_segments.length; i++) {
-                    if(predicted_pos_gt_labels[i]==1){
-                        bkgrnd_class = "bg-success";
-                    }
-                    else{
-                        bkgrnd_class = "bg-danger";
-                    }
-
-                    pos_predictions.append(createSampleOutput(predicted_pos_segments[i], bkgrnd_class, i));
-                }
-                prediction_container.append(pos_predictions);
-
-                //Negative gallery
-                var neg_predictions = $("<div></div>").addClass("d-flex justify-content-evenly flex-wrap border border-1 border-secondary"); //document.getElementById("neg-gallery");
-                var neg_heading = $("<h6>Negative</h6>").addClass("p-2 w-100")
-                neg_predictions.append(neg_heading)
-                neg_predictions.append(breakdiv)
-                for (var i = 0; i < predicted_neg_segments.length; i++) {
-                    if(predicted_neg_gt_labels[i]==0){
-                        bkgrnd_class = "bg-success";
-                    }
-                    else{
-                        bkgrnd_class = "bg-danger";
-                    }
-                    neg_predictions.append(createSampleOutput(predicted_neg_segments[i], bkgrnd_class, i));
-                }
-                prediction_container.append(neg_predictions);
             }
+            var num_false_neg = 0;
+            for(var i = 0; i < predicted_neg_gt_labels.length; i++){
+                if(predicted_neg_gt_labels[i] ==1){
+                    num_false_neg += 1;
+                }
+            }
+
+            // Stats
+            prediction_container.append(createStats(num_pred_pos, num_pred_neg, num_false_pos, num_false_neg));
+
+            //Positive Gallery
+            var pos_predictions = $("<div></div>").addClass("d-flex justify-content-evenly flex-wrap border border-1 border-secondary mb-3"); //document.getElementById("pos-gallery");
+            var pos_heading = $("<h6>Positive</h6>").addClass("p-2 w-100");
+            var breakdiv = $("<div></div>").addClass("w-36");
+            pos_predictions.append(pos_heading);
+            pos_predictions.append(breakdiv);
+
+            for (var i = 0; i < predicted_pos_segments.length; i++) {
+                if(predicted_pos_gt_labels[i]==1){
+                    bkgrnd_class = "bg-success";
+                }
+                else{
+                    bkgrnd_class = "bg-danger";
+                }
+
+                pos_predictions.append(createSampleOutput(predicted_pos_segments[i], bkgrnd_class, i));
+            }
+            prediction_container.append(pos_predictions);
+
+            //Negative gallery
+            var neg_predictions = $("<div></div>").addClass("d-flex justify-content-evenly flex-wrap border border-1 border-secondary"); //document.getElementById("neg-gallery");
+            var neg_heading = $("<h6>Negative</h6>").addClass("p-2 w-100")
+            neg_predictions.append(neg_heading)
+            neg_predictions.append(breakdiv)
+            for (var i = 0; i < predicted_neg_segments.length; i++) {
+                if(predicted_neg_gt_labels[i]==0){
+                    bkgrnd_class = "bg-success";
+                }
+                else{
+                    bkgrnd_class = "bg-danger";
+                }
+                neg_predictions.append(createSampleOutput(predicted_neg_segments[i], bkgrnd_class, i));
+            }
+            prediction_container.append(neg_predictions);
         }
         var selected_gt_labels;
-        if (flag == 'live') {
+        if (flag == 'live' || flag == 'live_init') {
             // Live query task doesn't have ground truth labels, so we create a dummy array
             selected_gt_labels = new Array(segments.length).fill(0);
         }
@@ -437,7 +514,7 @@ async function iterativeSynthesis(flag) {
         var button_div = $("<div></div>")
             .addClass("d-flex justify-content-center pt-5 pb-5")
             .attr('id', 'btn');
-        if (flag == 'live') {
+        if (flag == 'live' || flag == 'live_init') {
             var button = $("<button></button>")
                 .addClass("btn btn-outline-primary spinnable")
                 .attr('onclick', "iterativeSynthesis('live')")
@@ -481,4 +558,42 @@ async function setRun() {
 
 function updateTime(video) {
     video.nextElementSibling.innerHTML = "Timestamp: " + video.currentTime.toFixed(3) + " seconds";
+}
+
+async function submitConfigForm(event) {
+    event.preventDefault(); // Prevent the form from submitting normally
+    // Close all popovers
+    $('._popover').popover('hide');
+    const formData = new FormData(event.target); // Get form data
+
+    // Convert form data to JSON
+    const formDataJson = {};
+    formData.forEach((value, key) => {
+        formDataJson[key] = value;
+    });
+
+    // Send form data to the backend
+    response = await fetch("set_params/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formDataJson),
+    });
+    var data = await response.json();
+    // Update config popover
+    configPopoverTrigger.dataset.labelingBudget = data.labeling_budget;
+    configPopoverTrigger.dataset.videosPerPage = data.videos_per_page;
+    configPopoverTrigger.dataset.beamWidth = data.beam_width;
+    console.log(configPopoverTrigger.dataset.beamWidth);
+    // Update the initialization pane
+    var segments = data.video_paths;
+    $("#gallery").empty();
+    initial_positive.clear();
+    initial_negative.clear();
+    $("#init_label_stats").html(`You have provided 0 positive and 0 negative examples.`);
+    for (var i = 0; i < segments.length; i++) {
+        $("#gallery").append(createSampleInput(segments[i], null, i, "init", "live_init"));
+    }
+    $(".button_init").click(setButtonOnClick);
 }
