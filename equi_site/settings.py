@@ -93,7 +93,7 @@ DATABASES = {
         'NAME': json.load(open(os.path.join(BASE_DIR, 'config.json')))['db_name'],
         'USER': json.load(open(os.path.join(BASE_DIR, 'config.json')))['db_user'],
         'HOST': '127.0.0.1',
-        'PORT': '5432',
+        'PORT': '5433',
     }
 }
 

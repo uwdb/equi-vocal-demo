@@ -552,6 +552,7 @@ async function setRun() {
     var labels = data.labels;
     $("#gallery").empty();
     for (var i = 0; i < segments.length; i++) {
+        console.log(createSampleInput(segments[i], labels[i], i, "init", 'user_study'));
         $("#gallery").append(createSampleInput(segments[i], labels[i], i, "init", 'user_study'));
     }
 }
