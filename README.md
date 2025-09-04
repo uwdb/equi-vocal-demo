@@ -18,6 +18,7 @@ First, set up the backend [code](https://github.com/uwdb/EQUI-VOCAL).
 2. Run the following commands to set up the Django application:
 ```sh
 python manage.py migrate
+python manage.py collectstatic
 ```
 3. Run the Django server:
 ```sh
